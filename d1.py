@@ -1,19 +1,20 @@
 f = open('input1')
 left_input = []
-right_input = []
+right_input = {}
 
 for l in f:
     left, right = l.rstrip().split()
     left_input.append(left)
-    right_input.append(right)
+    if right in right_input:
+        right_input[right] = right_input[right] + 1
+    else:
+        right_input[right] = 1
 
-left_input_sorted = sorted(left_input)
-right_input_sorted = sorted(right_input)
+similarity_score = 0
 
-sum_of_diff = 0
+for l in left_input:
+    if l in right_input:
+        similarity_score += (int(l) * right_input[l])
 
-for i in range(1000):
-    sum_of_diff += abs(int(left_input_sorted[i]) - int(right_input_sorted[i]))
-
-print('solution:')
-print(sum_of_diff)
+print('similarity_score')
+print(similarity_score)
