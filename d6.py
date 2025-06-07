@@ -1,3 +1,4 @@
+import copy
 class Guard:
     def __init__(self, x, y) -> None:
         self.current = "up"
@@ -30,10 +31,14 @@ class Guard:
         return f"Guard({self.x}, {self.y})"
 
 f = open('input6')
+f = open('testinput')
 grid = []
 for l in f:
     grid.append(list(l.rstrip()))
 
+# map obstacles
+y_axis = set()
+x_axis = set()
 # init guard with start location
 g = None
 START_POSTITION_MARKER = "^"
@@ -41,27 +46,34 @@ for r in range(len(grid)):
     for c in range(len(grid[0])):
         if grid[r][c] == START_POSTITION_MARKER:
             g = Guard(r,c)
+        elif grid[r][c] == '#':
+            x_axis.add(r)
+            y_axis.add(c)
 if g is None:
     raise Exception("Failed to init guard")
 
 # walk until we go out of bounds
-while True:
-    x, y = g.move()
-    if 0 <= g.x + x < len(grid) and 0 <= g.y + y < len(grid[0]):
-        if grid[g.x + x][g.y + y] != '#':
-            g.x = g.x + x
-            g.y = g.y + y
-            print('moved to position', g.x, g.y, ' marking with X')
-            grid[g.x][g.y] = 'X'
+def traverse(g: Guard, matrix: list[list[str]]):
+    grid = copy.deepcopy(matrix)
+    while True:
+        x, y = g.move()
+        if 0 <= g.x + x < len(grid) and 0 <= g.y + y < len(grid[0]):
+            if grid[g.x + x][g.y + y] != '#':
+                g.x = g.x + x
+                g.y = g.y + y
+                print('moved to position', g.x, g.y, ' marking with X')
+                grid[g.x][g.y] = 'X'
+            else:
+                print('changing direction, from ', g.current, ' to ' )
+                g.change_direction()
+                print(g.current )
         else:
-            print('changing direction, from ', g.current, ' to ' )
-            g.change_direction()
-            print(g.current )
-    else:
-        break
+            break
+    return grid
+new_grid = traverse(g, grid)
 # count all the steps
 count = 0
-for x in grid:
+for x in new_grid:
     for y in x:
         if y == 'X' or y == '^':
             count += 1
