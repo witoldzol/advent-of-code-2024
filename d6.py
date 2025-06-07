@@ -1,12 +1,10 @@
-from enum import Enum
-
 class Guard:
     def __init__(self, x, y) -> None:
         self.current = "up"
         self.x = x
         self.y = y
 
-    def get_direction(self):
+    def move(self):
         if self.current == "up":
             return (-1,0)
         elif self.current == "right":
@@ -31,19 +29,40 @@ class Guard:
     def __repr__(self) -> str:
         return f"Guard({self.x}, {self.y})"
 
-f = open('./testinput')
+f = open('input6')
 grid = []
 for l in f:
     grid.append(list(l.rstrip()))
 
 # init guard with start location
-guard = None
-POSTITION_MARKER = "^"
+g = None
+START_POSTITION_MARKER = "^"
 for r in range(len(grid)):
     for c in range(len(grid[0])):
-        if grid[r][c] == POSTITION_MARKER:
+        if grid[r][c] == START_POSTITION_MARKER:
             g = Guard(r,c)
 if g is None:
     raise Exception("Failed to init guard")
 
-print(g)
+# walk until we go out of bounds
+while True:
+    x, y = g.move()
+    if 0 <= g.x + x < len(grid) and 0 <= g.y + y < len(grid[0]):
+        if grid[g.x + x][g.y + y] != '#':
+            g.x = g.x + x
+            g.y = g.y + y
+            print('moved to position', g.x, g.y, ' marking with X')
+            grid[g.x][g.y] = 'X'
+        else:
+            print('changing direction, from ', g.current, ' to ' )
+            g.change_direction()
+            print(g.current )
+    else:
+        break
+# count all the steps
+count = 0
+for x in grid:
+    for y in x:
+        if y == 'X' or y == '^':
+            count += 1
+print(count)
