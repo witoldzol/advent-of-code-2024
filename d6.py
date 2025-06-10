@@ -117,7 +117,7 @@ def traverse(g: Guard, matrix: list[list[str]], x_axis: dict[int,list[int]], y_a
         # check for alternatives before we move
         # alternatives depend on the direction we are facing
         # up -> right : y_axis
-        if not g.is_obstacle_ahead(grid):
+        if True:
             if g.current == "up":
                 if g.x in x_axis:
                     next_blockade = next_obstacle(g.y, x_axis[g.x])
@@ -133,6 +133,7 @@ def traverse(g: Guard, matrix: list[list[str]], x_axis: dict[int,list[int]], y_a
                     next_blockade = next_obstacle(g.x, y_axis[g.y])
                     if next_blockade != -1:
                         # print(f'we could go down from position {g.x} {g.y} to block {next_blockade}, {g.y}')
+                        new_obstacle_coords = g.move()
                         if is_infinite_loop(g, matrix,  new_obstacle_coords):
                             loop_counter += 1
         # down -> left : y_axis
@@ -143,6 +144,7 @@ def traverse(g: Guard, matrix: list[list[str]], x_axis: dict[int,list[int]], y_a
                     next_blockade = next_obstacle(g.y, x_axis[g.x], reverse=True)
                     if next_blockade != -1:
                         # print(f'we could go left from position {g.x} {g.y} to block {g.x}, {next_blockade}')
+                        new_obstacle_coords = g.move()
                         if is_infinite_loop(g, matrix, new_obstacle_coords):
                             loop_counter += 1
         # left -> up : x_axis
@@ -153,6 +155,7 @@ def traverse(g: Guard, matrix: list[list[str]], x_axis: dict[int,list[int]], y_a
                     next_blockade = next_obstacle(g.x, y_axis[g.y], reverse=True)
                     if next_blockade != -1:
                         # print(f'we could go up from position {g.x} {g.y} to block {next_blockade}, {g.y}')
+                        new_obstacle_coords = g.move()
                         if is_infinite_loop(g, matrix, new_obstacle_coords):
                             loop_counter += 1
         x, y = g.move()
