@@ -59,11 +59,18 @@ for r in range(len(grid)):
 if g is None:
     raise Exception("Failed to init guard")
 
-def next_obstacle(i: int, obstacles:list[int]) -> int:
-    sorted_obstacles = sorted(obstacles)
+def next_obstacle(i: int, obstacles:list[int], reverse=False) -> int:
+    sorted_obstacles = sorted(obstacles, reverse=reverse)
+    # 1 2 3
+    # 2
+    # 3 2 1
     for x in sorted_obstacles:
-        if x > i:
-            return x
+        if reverse:
+            if x < i:
+                return x
+        else:
+            if x > i:
+                return x
     return -1
 
 # walk until we go out of bounds
@@ -87,7 +94,21 @@ def traverse(g: Guard, matrix: list[list[str]], x_axis: dict[int,list[int]], y_a
                     if next_blockade != -1:
                         print(f'we could go down from position {g.x} {g.y} to block {next_blockade}, {g.y}')
         # down -> left : y_axis
+            if g.current == "down":
+                # if we go down, that means we traverse x axis, and potential pivot is left, so we need to check obstacles in y axis
+                if g.x in x_axis:
+                    # reverse because we go 'left', meaning we look at the values lower than current y in y axis
+                    next_blockade = next_obstacle(g.y, x_axis[g.x], reverse=True)
+                    if next_blockade != -1:
+                        print(f'we could go left from position {g.x} {g.y} to block {g.x}, {next_blockade}')
         # left -> up : x_axis
+            if g.current == "left":
+                # if we go left, that means we traverse y axis, and potential pivot is up, so we need to check obstacles in x axis
+                if g.y in y_axis:
+                    # reverse because we go 'up', meaning we look at the values lower than current x in x axis
+                    next_blockade = next_obstacle(g.x, y_axis[g.y], reverse=True)
+                    if next_blockade != -1:
+                        print(f'we could go up from position {g.x} {g.y} to block {next_blockade}, {g.y}')
         x, y = g.move()
         if 0 <= g.x + x < len(grid) and 0 <= g.y + y < len(grid[0]):
             if grid[g.x + x][g.y + y] != '#':
