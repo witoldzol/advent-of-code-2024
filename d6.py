@@ -1,5 +1,6 @@
 import copy
 from os import curdir
+OBSTACLES = set()
 class Guard:
     def __init__(self, x: int, y: int, current = "up") -> None:
         self.current = current
@@ -53,6 +54,7 @@ START_POSTITION_MARKER = "^"
 for r in range(len(grid)):
     for c in range(len(grid[0])):
         if grid[r][c] == START_POSTITION_MARKER:
+            START_COORDS = (r,c)
             g = Guard(r,c)
         elif grid[r][c] == '#':
             x_axis.setdefault(r,[]).append(c)
@@ -76,7 +78,7 @@ def next_obstacle(i: int, obstacles:list[int], reverse=False) -> int:
 
 def is_infinite_loop(g: Guard, matrix: list[list[str]], new_obstacle: tuple[int,int]):
     grid = copy.deepcopy(matrix)
-    new_guard = Guard(g.y, g.y, g.current)
+    new_guard = Guard(g.x, g.y, g.current)
     # add new obstacle
     x, y = new_obstacle
     x = g.x + x
@@ -84,16 +86,19 @@ def is_infinite_loop(g: Guard, matrix: list[list[str]], new_obstacle: tuple[int,
     try:
         grid[x][y] = '#'
     except:
-        print(x,y,' out of bounds')
         return False
     result = traverse_for_loop(new_guard, grid)
     if result:
-        print('found loop', x, y)
+        OBSTACLES.add((x,y))
+        # print('found loop', x, y)
     return result
 
 
 # walk until we go out of bounds
 def traverse_for_loop(g: Guard, grid: list[list[str]]):
+    # # xxx
+    # if g.x == 6 and g.y == 4:
+    #     import pudb; pu.db
     visited = set()
     visited.add((g.x, g.y, g.current))
     while True:
@@ -158,6 +163,7 @@ def traverse(g: Guard, matrix: list[list[str]], x_axis: dict[int,list[int]], y_a
                     # reverse because we go 'up', meaning we look at the values lower than current x in x axis
                     next_blockade = next_obstacle(g.x, y_axis[g.y], reverse=True)
                     if next_blockade != -1:
+                        # print('im going left', ' current coords ', g.x, g.y, ' new obstacle ','x ', next_blockade, 'y ', g.y)
                         # print(f'we could go up from position {g.x} {g.y} to block {next_blockade}, {g.y}')
                         new_obstacle_coords = g.move()
                         if is_infinite_loop(g, matrix, new_obstacle_coords):
@@ -175,7 +181,10 @@ def traverse(g: Guard, matrix: list[list[str]], x_axis: dict[int,list[int]], y_a
                 # print(g.current )
         else:
             break
-    print('looop counter ', loop_counter)
+    if START_COORDS in OBSTACLES:
+        OBSTACLES.remove(START_COORDS)
+    print('looop counter ', len(OBSTACLES))
+    print(OBSTACLES)
     return grid
 
 new_grid = traverse(g, grid, x_axis, y_axis)
