@@ -1,5 +1,6 @@
 import copy
 from os import curdir
+START_COORDS = None
 OBSTACLES = set()
 class Guard:
     def __init__(self, x: int, y: int, current = "up") -> None:
@@ -40,7 +41,7 @@ class Guard:
         return False
 
 f = open('input6')
-f = open('testinput')
+# f = open('testinput')
 grid = []
 for l in f:
     grid.append(list(l.rstrip()))
@@ -96,9 +97,6 @@ def is_infinite_loop(g: Guard, matrix: list[list[str]], new_obstacle: tuple[int,
 
 # walk until we go out of bounds
 def traverse_for_loop(g: Guard, grid: list[list[str]]):
-    # # xxx
-    # if g.x == 6 and g.y == 4:
-    #     import pudb; pu.db
     visited = set()
     visited.add((g.x, g.y, g.current))
     while True:
@@ -113,8 +111,7 @@ def traverse_for_loop(g: Guard, grid: list[list[str]]):
                 visited.add((g.x, g.y, g.current))
             else:
                 g.change_direction()
-                if (g.x, g.y, g.current) in visited:
-                    return True
+                visited.add((g.x, g.y, g.current))
         else:
             break
     return False
@@ -173,25 +170,23 @@ def traverse(g: Guard, matrix: list[list[str]], x_axis: dict[int,list[int]], y_a
             if grid[g.x + x][g.y + y] != '#':
                 g.x = g.x + x
                 g.y = g.y + y
-                # print('moved to position', g.x, g.y, ' marking with X')
                 grid[g.x][g.y] = 'X'
             else:
-                # print('changing direction, from ', g.current, ' to ' )
                 g.change_direction()
-                # print(g.current )
         else:
             break
-    if START_COORDS in OBSTACLES:
-        OBSTACLES.remove(START_COORDS)
-    print('looop counter ', len(OBSTACLES))
-    print(OBSTACLES)
     return grid
 
 new_grid = traverse(g, grid, x_axis, y_axis)
+if not START_COORDS:
+    raise 'no starting coords'
+if START_COORDS in OBSTACLES:
+    OBSTACLES.remove(START_COORDS)
+print('looop counter ', len(OBSTACLES))
 # count all the steps
-count = 0
-for x in new_grid:
-    for y in x:
-        if y == 'X' or y == '^':
-            count += 1
-print(count)
+# count = 0
+# for x in new_grid:
+#     for y in x:
+#         if y == 'X' or y == '^':
+#             count += 1
+# print(count)
