@@ -1,5 +1,5 @@
 import copy
-from os import curdir
+
 START_COORDS = None
 OBSTACLES = set()
 class Guard:
@@ -39,9 +39,6 @@ grid = []
 for l in f:
     grid.append(list(l.rstrip()))
 
-# map obstacles
-y_axis: dict[int, list[int]] = {}
-x_axis: dict[int, list[int]]= {}
 # init guard with start location
 g = None
 START_POSTITION_MARKER = "^"
@@ -50,48 +47,11 @@ for r in range(len(grid)):
         if grid[r][c] == START_POSTITION_MARKER:
             START_COORDS = (r,c)
             g = Guard(r,c)
-        elif grid[r][c] == '#':
-            x_axis.setdefault(r,[]).append(c)
-            y_axis.setdefault(c,[]).append(r)
 if g is None:
     raise Exception("Failed to init guard")
 
-def next_obstacle(i: int, obstacles:list[int], reverse=False) -> int:
-    sorted_obstacles = sorted(obstacles, reverse=reverse)
-    # 1 2 3
-    # 2
-    # 3 2 1
-    for x in sorted_obstacles:
-        if reverse:
-            if x < i:
-                return x
-        else:
-            if x > i:
-                return x
-    return -1
-
 # walk until we go out of bounds
-def traverse_for_loop(g: Guard, grid: list[list[str]]):
-    visited = set()
-    visited.add((g.x, g.y, g.current))
-    while True:
-        x, y = g.move()
-        if 0 <= g.x + x < len(grid) and 0 <= g.y + y < len(grid[0]):
-            if grid[g.x + x][g.y + y] != '#':
-                g.x = g.x + x
-                g.y = g.y + y
-                # check if we are in a loop
-                if (g.x, g.y, g.current) in visited:
-                    return True
-                visited.add((g.x, g.y, g.current))
-            else:
-                g.change_direction()
-                visited.add((g.x, g.y, g.current))
-        else:
-            break
-    return False
-# walk until we go out of bounds
-def traverse(g: Guard, matrix: list[list[str]], x_axis: dict[int,list[int]], y_axis: dict[int,list[int]]):
+def traverse(g: Guard, matrix: list[list[str]]):
     grid = copy.deepcopy(matrix)
     while True:
         x, y = g.move()
@@ -123,7 +83,7 @@ def is_infinite_loop(g: Guard, grid: list[list[str]], start_coords):
                 g.change_direction()
         else:
             return 0
-new_grid = traverse(g, grid, x_axis, y_axis)
+new_grid = traverse(g, grid)
 
 count = 0
 for x in new_grid:
