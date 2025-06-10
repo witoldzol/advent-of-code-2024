@@ -81,7 +81,11 @@ def is_infinite_loop(g: Guard, matrix: list[list[str]], new_obstacle: tuple[int,
     x, y = new_obstacle
     x = g.x + x
     y = g.y + y
-    grid[x][y] = '#'
+    try:
+        grid[x][y] = '#'
+    except:
+        print(x,y,' out of bounds')
+        return False
     result = traverse_for_loop(new_guard, grid)
     if result:
         print('found loop', x, y)
@@ -89,7 +93,7 @@ def is_infinite_loop(g: Guard, matrix: list[list[str]], new_obstacle: tuple[int,
 
 
 # walk until we go out of bounds
-def traverse_for_loop(g: Guard, grid: list[list[str]], visited = set[tuple[str,int,int]]):
+def traverse_for_loop(g: Guard, grid: list[list[str]]):
     visited = set()
     visited.add((g.x, g.y, g.current))
     while True:
@@ -127,7 +131,7 @@ def traverse(g: Guard, matrix: list[list[str]], x_axis: dict[int,list[int]], y_a
                         if is_infinite_loop(g, matrix, new_obstacle_coords):
                             loop_counter += 1
             # right -> down: x_axis
-            if g.current == "right":
+            elif g.current == "right":
                 # if we go right, that means we traverse y axis, and potential pivot is down, so we need to check obstacles in x axis
                 if g.y in y_axis:
                     next_blockade = next_obstacle(g.x, y_axis[g.y])
@@ -137,7 +141,7 @@ def traverse(g: Guard, matrix: list[list[str]], x_axis: dict[int,list[int]], y_a
                         if is_infinite_loop(g, matrix,  new_obstacle_coords):
                             loop_counter += 1
         # down -> left : y_axis
-            if g.current == "down":
+            elif g.current == "down":
                 # if we go down, that means we traverse x axis, and potential pivot is left, so we need to check obstacles in y axis
                 if g.x in x_axis:
                     # reverse because we go 'left', meaning we look at the values lower than current y in y axis
@@ -148,7 +152,7 @@ def traverse(g: Guard, matrix: list[list[str]], x_axis: dict[int,list[int]], y_a
                         if is_infinite_loop(g, matrix, new_obstacle_coords):
                             loop_counter += 1
         # left -> up : x_axis
-            if g.current == "left":
+            elif g.current == "left":
                 # if we go left, that means we traverse y axis, and potential pivot is up, so we need to check obstacles in x axis
                 if g.y in y_axis:
                     # reverse because we go 'up', meaning we look at the values lower than current x in x axis
