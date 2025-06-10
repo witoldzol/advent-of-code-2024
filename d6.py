@@ -1,7 +1,8 @@
 import copy
+from os import curdir
 class Guard:
-    def __init__(self, x: int, y: int) -> None:
-        self.current = "up"
+    def __init__(self, x: int, y: int, current = "up") -> None:
+        self.current = current
         self.x = x
         self.y = y
 
@@ -73,9 +74,45 @@ def next_obstacle(i: int, obstacles:list[int], reverse=False) -> int:
                 return x
     return -1
 
+def is_infinite_loop(g: Guard, matrix: list[list[str]], new_obstacle: tuple[int,int]):
+    grid = copy.deepcopy(matrix)
+    new_guard = Guard(g.y, g.y, g.current)
+    # add new obstacle
+    x, y = new_obstacle
+    x = g.x + x
+    y = g.y + y
+    grid[x][y] = '#'
+    result = traverse_for_loop(new_guard, grid)
+    if result:
+        print('found loop', x, y)
+    return result
+
+
+# walk until we go out of bounds
+def traverse_for_loop(g: Guard, grid: list[list[str]], visited = set[tuple[str,int,int]]):
+    visited = set()
+    visited.add((g.x, g.y, g.current))
+    while True:
+        x, y = g.move()
+        if 0 <= g.x + x < len(grid) and 0 <= g.y + y < len(grid[0]):
+            if grid[g.x + x][g.y + y] != '#':
+                g.x = g.x + x
+                g.y = g.y + y
+                # check if we are in a loop
+                if (g.x, g.y, g.current) in visited:
+                    return True
+                visited.add((g.x, g.y, g.current))
+            else:
+                g.change_direction()
+                if (g.x, g.y, g.current) in visited:
+                    return True
+        else:
+            break
+    return False
 # walk until we go out of bounds
 def traverse(g: Guard, matrix: list[list[str]], x_axis: dict[int,list[int]], y_axis: dict[int,list[int]]):
     grid = copy.deepcopy(matrix)
+    loop_counter = 0
     while True:
         # check for alternatives before we move
         # alternatives depend on the direction we are facing
@@ -85,14 +122,19 @@ def traverse(g: Guard, matrix: list[list[str]], x_axis: dict[int,list[int]], y_a
                 if g.x in x_axis:
                     next_blockade = next_obstacle(g.y, x_axis[g.x])
                     if next_blockade != -1:
-                        print(f'we could go right from position {g.x} {g.y} to block {g.x}, {next_blockade}')
+                        # print(f'we could go right from position {g.x} {g.y} to block {g.x}, {next_blockade}')
+                        new_obstacle_coords = g.move()
+                        if is_infinite_loop(g, matrix, new_obstacle_coords):
+                            loop_counter += 1
             # right -> down: x_axis
             if g.current == "right":
                 # if we go right, that means we traverse y axis, and potential pivot is down, so we need to check obstacles in x axis
                 if g.y in y_axis:
                     next_blockade = next_obstacle(g.x, y_axis[g.y])
                     if next_blockade != -1:
-                        print(f'we could go down from position {g.x} {g.y} to block {next_blockade}, {g.y}')
+                        # print(f'we could go down from position {g.x} {g.y} to block {next_blockade}, {g.y}')
+                        if is_infinite_loop(g, matrix,  new_obstacle_coords):
+                            loop_counter += 1
         # down -> left : y_axis
             if g.current == "down":
                 # if we go down, that means we traverse x axis, and potential pivot is left, so we need to check obstacles in y axis
@@ -100,7 +142,9 @@ def traverse(g: Guard, matrix: list[list[str]], x_axis: dict[int,list[int]], y_a
                     # reverse because we go 'left', meaning we look at the values lower than current y in y axis
                     next_blockade = next_obstacle(g.y, x_axis[g.x], reverse=True)
                     if next_blockade != -1:
-                        print(f'we could go left from position {g.x} {g.y} to block {g.x}, {next_blockade}')
+                        # print(f'we could go left from position {g.x} {g.y} to block {g.x}, {next_blockade}')
+                        if is_infinite_loop(g, matrix, new_obstacle_coords):
+                            loop_counter += 1
         # left -> up : x_axis
             if g.current == "left":
                 # if we go left, that means we traverse y axis, and potential pivot is up, so we need to check obstacles in x axis
@@ -108,7 +152,9 @@ def traverse(g: Guard, matrix: list[list[str]], x_axis: dict[int,list[int]], y_a
                     # reverse because we go 'up', meaning we look at the values lower than current x in x axis
                     next_blockade = next_obstacle(g.x, y_axis[g.y], reverse=True)
                     if next_blockade != -1:
-                        print(f'we could go up from position {g.x} {g.y} to block {next_blockade}, {g.y}')
+                        # print(f'we could go up from position {g.x} {g.y} to block {next_blockade}, {g.y}')
+                        if is_infinite_loop(g, matrix, new_obstacle_coords):
+                            loop_counter += 1
         x, y = g.move()
         if 0 <= g.x + x < len(grid) and 0 <= g.y + y < len(grid[0]):
             if grid[g.x + x][g.y + y] != '#':
@@ -119,10 +165,12 @@ def traverse(g: Guard, matrix: list[list[str]], x_axis: dict[int,list[int]], y_a
             else:
                 # print('changing direction, from ', g.current, ' to ' )
                 g.change_direction()
-                print(g.current )
+                # print(g.current )
         else:
             break
+    print('looop counter ', loop_counter)
     return grid
+
 new_grid = traverse(g, grid, x_axis, y_axis)
 # count all the steps
 count = 0
