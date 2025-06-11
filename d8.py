@@ -23,13 +23,20 @@ for a_type,coords in antenas.items():
             # print(a_type, ix,iy, '->', jx,jy)
             dx = ix - jx
             dy = iy - jy
-            if 0<=ix+dx<len(grid) and 0<=iy+dy<len(grid[0]):
-                # if grid[ix+dx][iy+dy] == '.':
+            while 0<=ix+dx<len(grid) and 0<=iy+dy<len(grid[0]):
                 grid[ix+dx][iy+dy] = '#'
                 locations.add((ix+dx,iy+dy))
-            # print(a_type, ix-jx,iy-jy)
+                ix = ix + dx
+                iy = iy + dy
+
 for l in grid:
     print(''.join(l))
-
-print('total ', len(locations))
-
+a_count = 0
+all_antena_locations = set()
+for k,v in antenas.items():
+    if len(v) > 2:
+        all_antena_locations.update(set(v))
+        a_count += len(v)
+overlapping = all_antena_locations.intersection(locations)
+print('answer:')
+print(len(locations) + a_count - len(overlapping))
