@@ -18,5 +18,20 @@ def generate_blocks(input:str) -> list[str]:
                 blocks.append('.')
     return blocks
 
+blocks = generate_blocks(input)
 expected = '00...111...2...333.44.5555.6666.777.888899'
-assert expected == ''.join(generate_blocks(input))
+assert expected == ''.join(blocks)
+
+def compact(blocks: list[str]) -> list[str]:
+    empty_sectors = [i for i,x in enumerate(blocks) if x == '.']
+    empty_sector_index = 0
+    for counter,i in enumerate(range(len(blocks)-1,-1, -1)):
+        if counter >= len(empty_sectors):
+            break
+        if blocks[i] != '.':
+            blocks[empty_sectors[empty_sector_index]] = blocks[i]
+            empty_sector_index += 1
+            blocks[i] = '.'
+
+compact(blocks)
+assert '0099811188827773336446555566..............' == ''.join(blocks)
