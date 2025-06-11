@@ -3,7 +3,7 @@ f = open('testinput')
 input = f.read().strip()
 print(input)
 FILES = {}
-EMPTY_SECTORS = {}
+EMPTY_SECTORS = []
 def generate_blocks(input:str) -> list[str]:
     input_list = list(input)
     blocks = []
@@ -21,7 +21,7 @@ def generate_blocks(input:str) -> list[str]:
             empty_block_size = int(input_list[i])
             for _ in range(empty_block_size):
                 blocks.append('.')
-            EMPTY_SECTORS[current_idx] = empty_block_size
+            EMPTY_SECTORS.append((current_idx, empty_block_size))
             current_idx += empty_block_size
     return blocks
 
@@ -42,7 +42,7 @@ def generate_blocks2(input:str) -> list[str]:
             empty_block_size = int(input_list[i])
             for _ in range(empty_block_size):
                 blocks.append('.')
-            EMPTY_SECTORS[current_idx] = empty_block_size
+            EMPTY_SECTORS.append((current_idx, empty_block_size))
             current_idx += empty_block_size
     return blocks
 
@@ -68,7 +68,8 @@ def compact(blocks: list[str]) -> list[str]:
 def move_file(blocks) -> int:
     for file, file_info in reversed(FILES.items()):
         file_idx, file_size = file_info
-        for empty_idx, empty_size in EMPTY_SECTORS.items():
+        for sector_index, sector_info  in enumerate(EMPTY_SECTORS):
+            empty_idx, empty_size = sector_info
             # if we can fit the file
             if file_size <= empty_size:
                 file = blocks[file_idx]
@@ -83,12 +84,12 @@ def move_file(blocks) -> int:
                 del FILES[file]
                 # update empty sector
                 if file_size == empty_size:
-                    del EMPTY_SECTORS[empty_idx]
+                    del EMPTY_SECTORS[sector_index]
                 else:
                     new_start_idx = empty_idx + file_size
-                    EMPTY_SECTORS[new_start_idx] = EMPTY_SECTORS[empty_idx] - file_size
-                    print('created new empty sector, index ', new_start_idx,' new size ', EMPTY_SECTORS[new_start_idx])
-                    del EMPTY_SECTORS[empty_idx]
+                    new_size = empty_idx - file_size
+                    EMPTY_SECTORS[sector_index] = (new_start_idx, new_size)
+                    print('created new empty sector, index ', EMPTY_SECTORS[sector_index])
                 return 1
     return 0
 
