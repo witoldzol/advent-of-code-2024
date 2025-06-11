@@ -1,4 +1,5 @@
 f = open('testinput')
+f = open('input9')
 input = f.read().strip()
 print(input)
 
@@ -19,8 +20,8 @@ def generate_blocks(input:str) -> list[str]:
     return blocks
 
 blocks = generate_blocks(input)
-expected = '00...111...2...333.44.5555.6666.777.888899'
-assert expected == ''.join(blocks)
+# expected = '00...111...2...333.44.5555.6666.777.888899'
+# assert expected == ''.join(blocks)
 
 def compact(blocks: list[str]) -> list[str]:
     empty_sectors = [i for i,x in enumerate(blocks) if x == '.']
@@ -34,4 +35,14 @@ def compact(blocks: list[str]) -> list[str]:
             blocks[i] = '.'
 
 compact(blocks)
-assert '0099811188827773336446555566..............' == ''.join(blocks)
+# assert '0099811188827773336446555566..............' == ''.join(blocks)
+
+def gen_checksum(blocks: list[str]) -> int:
+    checksum = 0
+    for i,x in enumerate(blocks):
+        if x == '.':
+            break
+        checksum += i * int(x)
+    return checksum
+print('checksum')
+print(gen_checksum(blocks))
