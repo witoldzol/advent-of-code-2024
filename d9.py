@@ -12,7 +12,7 @@ def generate_blocks(input:str) -> list[str]:
     for i in range(len(input_list)):
         if i % 2 == 0:
             file_size = int(input_list[i])
-            FILES[str(file_index)] = file_size
+            FILES[str(file_index)] = (current_idx, file_size)
             for _ in range(file_size):
                 blocks.append(str(file_index))
             file_index += 1
@@ -25,7 +25,32 @@ def generate_blocks(input:str) -> list[str]:
             current_idx += empty_block_size
     return blocks
 
+def generate_blocks2(input:str) -> list[str]:
+    input_list = list(input)
+    blocks = []
+    file_index = 0
+    current_idx = 0
+    for i in range(len(input_list)):
+        if i % 2 == 0:
+            file_size = int(input_list[i])
+            FILES[current_idx] = file_size
+            for _ in range(file_size):
+                blocks.append(str(file_index))
+                file_index += 1
+            current_idx += file_size
+        else:
+            empty_block_size = int(input_list[i])
+            for _ in range(empty_block_size):
+                blocks.append('.')
+            EMPTY_SECTORS[current_idx] = empty_block_size
+            current_idx += empty_block_size
+    return blocks
+
 blocks = generate_blocks(input)
+print('PURE')
+print('PURE')
+print('PURE')
+print(''.join(blocks))
 # expected = '00...111...2...333.44.5555.6666.777.888899'
 # assert expected == ''.join(blocks)
 
@@ -40,22 +65,56 @@ def compact(blocks: list[str]) -> list[str]:
             empty_sector_index += 1
             blocks[i] = '.'
 
-def compact(blocks: list[str]) -> list[str]:
-    empty_sectors = [i for i,x in enumerate(blocks) if x == '.']
-    empty_sector_index = 0
-    for counter,i in enumerate(range(len(blocks)-1,-1, -1)):
-        if counter >= len(empty_sectors):
-            break
-        if blocks[i] != '.':
-            file = blocks[i]
-            # get the size of the empty sector
-            blocks[empty_sectors[empty_sector_index]] = blocks[i]
-            empty_sector_index += 1
-            blocks[i] = '.'
+def move_file(blocks) -> int:
+    for file, file_info in reversed(FILES.items()):
+        file_idx, file_size = file_info
+        for empty_idx, empty_size in EMPTY_SECTORS.items():
+            # if we can fit the file
+            if file_size <= empty_size:
+                file = blocks[file_idx]
+                # move file to empty sector
+                for i in range(empty_idx, empty_idx + file_size):
+                    blocks[i] = file
+                # remove file from previous location
+                for i in range(file_idx, file_idx + file_size):
+                    blocks[i] = '.'
+                # delete file from dict
+                print('deleting file index ', file)
+                del FILES[file]
+                # update empty sector
+                if file_size == empty_size:
+                    del EMPTY_SECTORS[empty_idx]
+                else:
+                    new_start_idx = empty_idx + file_size
+                    EMPTY_SECTORS[new_start_idx] = EMPTY_SECTORS[empty_idx] - file_size
+                    print('created new empty sector, index ', new_start_idx,' new size ', EMPTY_SECTORS[new_start_idx])
+                    del EMPTY_SECTORS[empty_idx]
+                return 1
+    return 0
 
-compact(blocks)
+def compact_entire_files(blocks: list[str]) -> list[str]:
+    ret = 1
+    while FILES and ret == 1:
+        print('EMPTY_SECTORS BEFORE')
+        print(EMPTY_SECTORS)
+        print('starting new iteration in compation')
+        print(FILES)
+        ret = move_file(blocks)
+        print('finished moving a file')
+        print(''.join(blocks))
+        print('EMPTY_SECTORS AFTER')
+        print(EMPTY_SECTORS)
+
+
+# compact(blocks)
 # assert '0099811188827773336446555566..............' == ''.join(blocks)
-
+compact_entire_files(blocks)
+print('FINAL')
+print('FINAL')
+print('FINAL')
+print('FINAL')
+print('FINAL')
+assert '00992111777.44.333....5555.6666.....8888..' == ''.join(blocks), ''.join(blocks)
 def gen_checksum(blocks: list[str]) -> int:
     checksum = 0
     for i,x in enumerate(blocks):
