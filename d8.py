@@ -1,5 +1,4 @@
 f = open('input8')
-# f = open('testinput')
 locations = set()
 grid = []
 antenas = {}
@@ -11,7 +10,6 @@ for r in range(len(grid)):
         x = grid[r][c]
         if x != '.':
             antenas.setdefault(x, []).append((r,c))
-print(antenas)
 for a_type,coords in antenas.items():
     for i in range(len(coords)):
         for j in range(len(coords)):
@@ -20,7 +18,6 @@ for a_type,coords in antenas.items():
                 continue
             ix,iy = coords[i]
             jx,jy = coords[j]
-            # print(a_type, ix,iy, '->', jx,jy)
             dx = ix - jx
             dy = iy - jy
             while 0<=ix+dx<len(grid) and 0<=iy+dy<len(grid[0]):
@@ -34,9 +31,11 @@ for l in grid:
 a_count = 0
 all_antena_locations = set()
 for k,v in antenas.items():
+    # ignore single antenas from the count
     if len(v) > 2:
         all_antena_locations.update(set(v))
         a_count += len(v)
+# we need to remove overlapping antenas and locations from the total count
 overlapping = all_antena_locations.intersection(locations)
 print('answer:')
 print(len(locations) + a_count - len(overlapping))
