@@ -2,6 +2,7 @@ import copy
 from collections import deque
 
 f = open('testinput')
+f = open('input10')
 grid = []
 for l in f:
     grid.append(list(l.rstrip()))
@@ -11,7 +12,7 @@ for l in grid:
     print(l)
 
 def score_traihead(start: tuple[int,int], grid: list[list[str]])->int:
-    score = 0
+    final_paths = set()
     start_x, start_y = start
     Q = deque()
     # use tuple of current-x, current-y, visited(set of tuples of x/y)
@@ -19,7 +20,6 @@ def score_traihead(start: tuple[int,int], grid: list[list[str]])->int:
     directions = [(0,1), (1,0), (0,-1), (-1,0)]
     while Q:
         x, y, visited, path = Q.popleft()
-        print('path ', path)
         for d in directions:
             dx, dy = d
             new_x = x + dx
@@ -39,7 +39,7 @@ def score_traihead(start: tuple[int,int], grid: list[list[str]])->int:
                 if a - b == 1 and next_step not in visited:
                     # check if we reached the peak
                     if grid[new_x][new_y] == '9':
-                        score += 1
+                        final_paths.add((new_x,new_y))
                     # otherwise keep walkin
                     else:
                         new_path = path[:]
@@ -47,10 +47,15 @@ def score_traihead(start: tuple[int,int], grid: list[list[str]])->int:
                         new_visited = copy.copy(visited)
                         new_visited.add(next_step)
                         Q.append((new_x, new_y, new_visited, new_path))
-    return score
+    return final_paths
 
+score = 0
 for x in range(len(grid)):
     for y in range(len(grid[0])):
         if grid[x][y] == '0':
-            score = score_traihead((int(x), int(y)), grid)
-            print(f"score for trailhead {x},{y} is {score}")
+            final_paths = score_traihead((int(x), int(y)), grid)
+            # print(f"score for trailhead {x},{y} is {len(final_paths)}")
+            score += len(final_paths)
+            # for p in final_paths:
+                # print(p)
+print(score)
