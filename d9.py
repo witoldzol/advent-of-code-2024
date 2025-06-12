@@ -1,5 +1,5 @@
 f = open('testinput')
-f = open('input9')
+# f = open('input9')
 input = f.read().strip()
 FILES = {}
 EMPTY_SECTORS = []
@@ -32,6 +32,8 @@ def compact_entire_files(blocks) -> None:
             if sector_info is None:
                 continue
             empty_idx, empty_size = sector_info
+            if sector_index >= file_idx:
+                break
             # if we can fit the file
             if file_size <= empty_size:
                 # print(f'found block to fits {file}, block idx {empty_idx}, size {empty_size}')
@@ -50,8 +52,6 @@ def compact_entire_files(blocks) -> None:
                     new_size = empty_size - file_size
                     EMPTY_SECTORS[sector_index] = (new_start_idx, new_size)
                 break
-            # else:
-            #     print(f'did not find empty block for file {file}')
 
 
 def gen_checksum(blocks: list[str]) -> int:
@@ -73,3 +73,6 @@ compact_entire_files(blocks)
 print('checksum')
 print(gen_checksum(blocks))
 # 8444425634594 = too high
+# 8411130615894 too hight
+# 6272188244509 - expected
+
