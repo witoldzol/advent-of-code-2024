@@ -1,78 +1,47 @@
-f = open('testinput')
-# f = open('input9')
+from collections import deque
+
+f = open('input9')
 input = f.read().strip()
-FILES = {}
-EMPTY_SECTORS = []
-def generate_blocks(input:str) -> list[str]:
-    input_list = list(input)
-    blocks = []
-    file_index = 0
-    current_idx = 0
-    for i in range(len(input_list)):
-        if i % 2 == 0:
-            file_size = int(input_list[i])
-            FILES[str(file_index)] = (current_idx, file_size)
-            for _ in range(file_size):
-                blocks.append(str(file_index))
-            file_index += 1
-            current_idx += file_size
-        else:
-            empty_block_size = int(input_list[i])
-            for _ in range(empty_block_size):
-                blocks.append('.')
-            EMPTY_SECTORS.append((current_idx, empty_block_size))
-            current_idx += empty_block_size
-    return blocks
-
-def compact_entire_files(blocks) -> None:
-    for file, file_info in reversed(FILES.items()):
-        # print(f'processing file {file}')
-        file_idx, file_size = file_info
-        for sector_index, sector_info  in enumerate(EMPTY_SECTORS):
-            if sector_info is None:
-                continue
-            empty_idx, empty_size = sector_info
-            if sector_index >= file_idx:
-                break
-            # if we can fit the file
-            if file_size <= empty_size:
-                # print(f'found block to fits {file}, block idx {empty_idx}, size {empty_size}')
-                file = blocks[file_idx]
-                # move file to empty sector
-                for i in range(empty_idx, empty_idx + file_size):
-                    blocks[i] = file
-                # remove file from previous location
-                for i in range(file_idx, file_idx + file_size):
-                    blocks[i] = '.'
-                # update empty sector
-                if file_size == empty_size:
-                    EMPTY_SECTORS[sector_index] = None
-                else:
-                    new_start_idx = empty_idx + file_size
-                    new_size = empty_size - file_size
-                    EMPTY_SECTORS[sector_index] = (new_start_idx, new_size)
-                break
-
-
-def gen_checksum(blocks: list[str]) -> int:
-    checksum = 0
-    for i,x in enumerate(blocks):
-        if x == '.':
+# spaces and files
+files = deque()
+spaces = []
+index = 0
+for i, c in enumerate(input):
+    size = int(c)
+    if i % 2 == 0:
+        file_name = i // 2
+        files.append((size, index, file_name))
+    else:
+        spaces.append((size, index, '.'))
+    index += size
+checksum = 0
+# move files to empty spaces
+while files:
+    f_size, f_index, file_name = files.pop()
+    moved = False
+    for s_i, s in enumerate(spaces):
+        if s is None:
             continue
-        checksum += i * int(x)
-    return checksum
-
-blocks = generate_blocks(input)
-expected = '00...111...2...333.44.5555.6666.777.888899'
-# assert expected == ''.join(blocks)
-
-# print(FILES)
-compact_entire_files(blocks)
-# assert '00992111777.44.333....5555.6666.....8888..' == ''.join(blocks), ''.join(blocks)
-
-print('checksum')
-print(gen_checksum(blocks))
-# 8444425634594 = too high
-# 8411130615894 too hight
-# 6272188244509 - expected
-
+        s_size, s_index, _ = s
+        # don't move files to the 'right', only 'left'
+        if s_index >= f_index:
+            break
+        if f_size <= s_size:
+            # calc the checksum at new position
+            for ii in range(s_index, s_index + f_size):
+                checksum += ii * file_name
+            # update the free space
+            new_s_size = s_size - f_size
+            new_s_index = s_index + f_size
+            if new_s_size == 0:
+                spaces[s_i] = None
+            else:
+                spaces[s_i] = (new_s_size, new_s_index, '.')
+            # stop looking for a space
+            moved = True
+            break
+    if not moved:
+        # we couldn't find big enough space, but we still need to calculate the checksum
+        for ii in range(f_index, f_index + f_size):
+            checksum += ii * file_name
+print(checksum)
