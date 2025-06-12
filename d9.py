@@ -24,41 +24,9 @@ def generate_blocks(input:str) -> list[str]:
             current_idx += empty_block_size
     return blocks
 
-def generate_blocks2(input:str) -> list[str]:
-    input_list = list(input)
-    blocks = []
-    file_index = 0
-    current_idx = 0
-    for i in range(len(input_list)):
-        if i % 2 == 0:
-            file_size = int(input_list[i])
-            FILES[current_idx] = file_size
-            for _ in range(file_size):
-                blocks.append(str(file_index))
-                file_index += 1
-            current_idx += file_size
-        else:
-            empty_block_size = int(input_list[i])
-            for _ in range(empty_block_size):
-                blocks.append('.')
-            EMPTY_SECTORS.append((current_idx, empty_block_size))
-            current_idx += empty_block_size
-    return blocks
-
 blocks = generate_blocks(input)
 # expected = '00...111...2...333.44.5555.6666.777.888899'
 # assert expected == ''.join(blocks)
-
-def compact(blocks: list[str]) -> list[str]:
-    empty_sectors = [i for i,x in enumerate(blocks) if x == '.']
-    empty_sector_index = 0
-    for counter,i in enumerate(range(len(blocks)-1,-1, -1)):
-        if counter >= len(empty_sectors):
-            break
-        if blocks[i] != '.':
-            blocks[empty_sectors[empty_sector_index]] = blocks[i]
-            empty_sector_index += 1
-            blocks[i] = '.'
 
 def move_file(blocks) -> int:
     for file, file_info in reversed(FILES.items()):
@@ -91,12 +59,8 @@ def compact_entire_files(blocks: list[str]) -> list[str]:
     while FILES and ret == 1:
         ret = move_file(blocks)
 
-
-# compact(blocks)
-# assert '0099811188827773336446555566..............' == ''.join(blocks)
 compact_entire_files(blocks)
 # assert '00992111777.44.333....5555.6666.....8888..' == ''.join(blocks), ''.join(blocks)
-
 
 def gen_checksum(blocks: list[str]) -> int:
     checksum = 0
@@ -108,6 +72,3 @@ def gen_checksum(blocks: list[str]) -> int:
 print('checksum')
 print(gen_checksum(blocks))
 # 8444425634594 = too high
-
-# print(FILES)
-# print(EMPTY_SECTORS)
