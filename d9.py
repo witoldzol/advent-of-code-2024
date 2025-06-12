@@ -1,5 +1,8 @@
+import cProfile
+import pstats
+
 f = open('testinput')
-# f = open('input9')
+f = open('input9')
 input = f.read().strip()
 FILES = {}
 EMPTY_SECTORS = []
@@ -23,10 +26,6 @@ def generate_blocks(input:str) -> list[str]:
             EMPTY_SECTORS.append((current_idx, empty_block_size))
             current_idx += empty_block_size
     return blocks
-
-blocks = generate_blocks(input)
-# expected = '00...111...2...333.44.5555.6666.777.888899'
-# assert expected == ''.join(blocks)
 
 def move_file(blocks) -> int:
     for file, file_info in reversed(FILES.items()):
@@ -54,13 +53,10 @@ def move_file(blocks) -> int:
                 return 1
     return 0
 
-def compact_entire_files(blocks: list[str]) -> list[str]:
+def compact_entire_files(blocks: list[str]) -> None:
     ret = 1
     while FILES and ret == 1:
         ret = move_file(blocks)
-
-compact_entire_files(blocks)
-# assert '00992111777.44.333....5555.6666.....8888..' == ''.join(blocks), ''.join(blocks)
 
 def gen_checksum(blocks: list[str]) -> int:
     checksum = 0
@@ -69,6 +65,21 @@ def gen_checksum(blocks: list[str]) -> int:
             continue
         checksum += i * int(x)
     return checksum
+
+# profile = cProfile.Profile()
+# profile.enable()
+
+blocks = generate_blocks(input)
+# expected = '00...111...2...333.44.5555.6666.777.888899'
+# assert expected == ''.join(blocks)
+
+compact_entire_files(blocks)
+# assert '00992111777.44.333....5555.6666.....8888..' == ''.join(blocks), ''.join(blocks)
+
 print('checksum')
 print(gen_checksum(blocks))
+# profile.disable()
+# profile.dump_stats("stats.prof")
+# stats = pstats.Stats("stats.prof")
+# stats.print_stats()
 # 8444425634594 = too high
