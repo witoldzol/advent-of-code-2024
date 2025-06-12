@@ -1,7 +1,6 @@
 f = open('testinput')
 # f = open('input9')
 input = f.read().strip()
-print(input)
 FILES = {}
 EMPTY_SECTORS = []
 def generate_blocks(input:str) -> list[str]:
@@ -47,10 +46,6 @@ def generate_blocks2(input:str) -> list[str]:
     return blocks
 
 blocks = generate_blocks(input)
-print('PURE')
-print('PURE')
-print('PURE')
-print(''.join(blocks))
 # expected = '00...111...2...333.44.5555.6666.777.888899'
 # assert expected == ''.join(blocks)
 
@@ -80,50 +75,39 @@ def move_file(blocks) -> int:
                 for i in range(file_idx, file_idx + file_size):
                     blocks[i] = '.'
                 # delete file from dict
-                print('deleting file index ', file)
                 del FILES[file]
                 # update empty sector
                 if file_size == empty_size:
                     del EMPTY_SECTORS[sector_index]
                 else:
                     new_start_idx = empty_idx + file_size
-                    new_size = empty_idx - file_size
+                    new_size = empty_size - file_size
                     EMPTY_SECTORS[sector_index] = (new_start_idx, new_size)
-                    print('created new empty sector, index ', EMPTY_SECTORS[sector_index])
                 return 1
     return 0
 
 def compact_entire_files(blocks: list[str]) -> list[str]:
     ret = 1
     while FILES and ret == 1:
-        print('EMPTY_SECTORS BEFORE')
-        print(EMPTY_SECTORS)
-        print('starting new iteration in compation')
-        print(FILES)
         ret = move_file(blocks)
-        print('finished moving a file')
-        print(''.join(blocks))
-        print('EMPTY_SECTORS AFTER')
-        print(EMPTY_SECTORS)
 
 
 # compact(blocks)
 # assert '0099811188827773336446555566..............' == ''.join(blocks)
 compact_entire_files(blocks)
-print('FINAL')
-print('FINAL')
-print('FINAL')
-print('FINAL')
-print('FINAL')
-assert '00992111777.44.333....5555.6666.....8888..' == ''.join(blocks), ''.join(blocks)
+# assert '00992111777.44.333....5555.6666.....8888..' == ''.join(blocks), ''.join(blocks)
+
+
 def gen_checksum(blocks: list[str]) -> int:
     checksum = 0
     for i,x in enumerate(blocks):
         if x == '.':
-            break
+            continue
         checksum += i * int(x)
     return checksum
 print('checksum')
 print(gen_checksum(blocks))
-print(FILES)
-print(EMPTY_SECTORS)
+# 8444425634594 = too high
+
+# print(FILES)
+# print(EMPTY_SECTORS)
