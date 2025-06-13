@@ -2,7 +2,7 @@ import copy
 from collections import deque
 
 f = open('testinput')
-f = open('input10')
+# f = open('input10')
 grid = []
 for l in f:
     grid.append(list(l.rstrip()))
