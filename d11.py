@@ -1,4 +1,5 @@
 stones = open('testinput').read().strip().split(' ')
+stones = open('input11').read().strip().split(' ')
 
 class Node:
     def __init__(self, val=None, prev=None, next=None) -> None:
@@ -43,38 +44,46 @@ for s in stones:
     current = n
 
 # run transformations for every 'blink'
-# for n in start.next:
-n = start.next
-while n:
-    if n is None or n.val is None:
-        break
-    print(f'transforming node{n}')
-    if n.val == 0:
-        n.val = 1
-        n = n.next
-    # split into two halfs
-    elif len(str(n)) % 2 == 0:
-        print('splitting into two halfs num ' , str(n))
-        num = str(n.val)
-        mid = len(num) // 2
-        left = num[:mid]
-        if len(left) > 1:
-            left = left.rstrip('0')
-        print('left ', left)
-        right = num[mid:]
-        if len(right) > 1:
-            right = right.rstrip('0')
-        print('right ', right)
-        left_node = Node(int(left))
-        right_node = Node(int(right))
-        split_node(n, left_node, right_node)
-        n = right_node.next
-    else:
-        print('multiply by 2024 ', n)
-        n.val = n.val * 2024
-        n = n.next
+i = 25
+for ii in range(i):
+    n = start.next
+    #print('START ', n)
+    while n:
+        if n is None or n.val is None:
+            break
+        # #print(f'transforming node{n}')
+        if n.val == 0:
+            n.val = 1
+            n = n.next
+        # split into two halfs
+        elif len(str(n)) % 2 == 0:
+            #print('splitting into two halfs num ' , str(n))
+            num = str(n.val)
+            mid = len(num) // 2
+            left = num[:mid]
+            if len(left) > 1:
+                left = left.lstrip('0')
+            if left == '':
+                left = 0
+            #print('left ', left)
+            right = num[mid:]
+            if len(right) > 1:
+                right = right.lstrip('0')
+            if right == '':
+                right = 0
+            #print('right ', right)
+            left_node = Node(int(left))
+            right_node = Node(int(right))
+            split_node(n, left_node, right_node)
+            n = right_node.next
+        else:
+            # #print('multiply by 2024 ', n)
+            n.val = n.val * 2024
+            n = n.next
+
 sol = []
 for n in start.next:
-    sol.append(n.val)
-for n in start.next:
-    print(n)
+    sol.append(str(n.val))
+print('='*100)
+# print(' '.join(sol))
+print(len(sol))
