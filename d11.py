@@ -27,20 +27,13 @@ def insert_after(node: Node, to_be_inserted: Node) -> None:
     to_be_inserted.prev = node
     node.next = to_be_inserted
 
-def replace_node(node: Node, new_node: Node) -> None:
-    print('replacing node ', node, ' with node ' , new_node)
-    new_node.prev = node.prev
-    new_node.next = node.next # 99
-    node.prev.next = new_node
-    node.next.prev = new_node
-
 def split_node(old_node: Node, new_left: Node, new_right: Node) -> None:
-    print('replacing node ', old_node, ' with nodes ' , new_left , 'and ', new_right)
     new_left.prev = old_node.prev
     old_node.prev.next = new_left
     new_left.next = new_right
     new_right.prev = new_left
     new_right.next = old_node.next
+    old_node.next.prev = new_right
 
 # initialize the list with input
 current = start
@@ -74,8 +67,6 @@ while n:
         print('right ', right)
         left_node = Node(int(left))
         right_node = Node(int(right))
-        # if right_node.val == 0:
-        #     import pudb;pu.db
         split_node(n, left_node, right_node)
         n = right_node.next
     else:
