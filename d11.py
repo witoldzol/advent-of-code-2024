@@ -1,89 +1,54 @@
+from collections import deque
+from functools import lru_cache
+
+
 stones = open('testinput').read().strip().split(' ')
-stones = open('input11').read().strip().split(' ')
+# stones = open('input11').read().strip().split(' ')
 
-class Node:
-    def __init__(self, val=None, prev=None, next=None) -> None:
-        self.val = val
-        self.prev = prev
-        self.next = next
+@lru_cache(maxsize=None)
+def transform(n: int) -> tuple[int]:
+    if n == 0:
+        return (1,)
+    # split into two halfs
+    elif len(str(n)) % 2 == 0:
+        #print('splitting into two halfs num ' , str(n))
+        num = str(n)
+        mid = len(num) // 2
+        left = num[:mid]
+        if len(left) > 1:
+            left = left.lstrip('0')
+        if left == '':
+            left = 0
+        #print('left ', left)
+        right = num[mid:]
+        if len(right) > 1:
+            right = right.lstrip('0')
+        if right == '':
+            right = 0
+        #print('right ', right)
+        return (int(left), int(right),)
+    else:
+        # #print('multiply by 2024 ', n)
+        return (n * 2024,)
 
-    def __repr__(self) -> str:
-        return f"Node({self.val})"
 
-    def __iter__(self):
-        current = self
-        while current is not None:
-            if current.val is None:
-                break
-            yield current
-            current = current.next
+iterations = 75
 
-start = Node()
-end = Node()
-start.next = end
-end.prev = start
+@lru_cache(maxsize=None)
+def transform_stone_series(ss: int, ii: int) -> int:
+    total = []
+    total.append(int(ss))
+    for _ in range(ii):
+        temp = []
+        for t in total:
+            temp.extend(transform(t))
+        total = temp
+    return len(total)
 
-def insert_after(node: Node, to_be_inserted: Node) -> None:
-    to_be_inserted.next = node.next
-    to_be_inserted.prev = node
-    node.next = to_be_inserted
-
-def split_node(old_node: Node, new_left: Node, new_right: Node) -> None:
-    new_left.prev = old_node.prev
-    old_node.prev.next = new_left
-    new_left.next = new_right
-    new_right.prev = new_left
-    new_right.next = old_node.next
-    old_node.next.prev = new_right
-
-# initialize the list with input
-current = start
+count = 0
 for s in stones:
-    n = Node(int(s))
-    insert_after(current, n)
-    current = n
+    print(f'starting stone {s}')
+    count += transform_stone_series(s, 25)
+    print(f'finished stone {s}')
 
-# run transformations for every 'blink'
-i = 25
-for ii in range(i):
-    n = start.next
-    #print('START ', n)
-    while n:
-        if n is None or n.val is None:
-            break
-        # #print(f'transforming node{n}')
-        if n.val == 0:
-            n.val = 1
-            n = n.next
-        # split into two halfs
-        elif len(str(n)) % 2 == 0:
-            #print('splitting into two halfs num ' , str(n))
-            num = str(n.val)
-            mid = len(num) // 2
-            left = num[:mid]
-            if len(left) > 1:
-                left = left.lstrip('0')
-            if left == '':
-                left = 0
-            #print('left ', left)
-            right = num[mid:]
-            if len(right) > 1:
-                right = right.lstrip('0')
-            if right == '':
-                right = 0
-            #print('right ', right)
-            left_node = Node(int(left))
-            right_node = Node(int(right))
-            split_node(n, left_node, right_node)
-            n = right_node.next
-        else:
-            # #print('multiply by 2024 ', n)
-            n.val = n.val * 2024
-            n = n.next
-
-sol = []
-for n in start.next:
-    sol.append(str(n.val))
-print('='*100)
-# print(' '.join(sol))
-print(len(sol))
+print(count)
