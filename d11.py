@@ -36,28 +36,18 @@ def transform(n: int) -> list[int]:
 
 iterations = 37
 
-@lru_cache(maxsize=None)
-def transform_stone_series(ss: int, ii: int) -> int:
-    total = []
-    total.append(int(ss))
-    for _ in range(ii):
-        temp = []
-        for t in total:
-            temp += transform(t)
-        total = temp
-    return len(total)
-
-profiler = cProfile.Profile()
-profiler.enable()
 count = 0
 for s in stones:
     print(f'starting stone {s}')
-    
-    count += transform_stone_series(s, iterations)
+    total = []
+    total.append(int(s))
+    for _ in range(iterations):
+        temp = []
+        for t in total:
+            bob = transform(t)
+            temp += bob
+        total = temp
+    count += len(total)
     print(f'finished stone {s}')
-
-profiler.disable()
-profiler.dump_stats('stats')
-stats = pstats.Stats('stats').print_stats()
 
 print(count)
