@@ -1,13 +1,9 @@
-from functools import lru_cache
-
-
 CACHE = {}
 
 stones = open("testinput").read().strip().split(" ")
 stones = open('input11').read().strip().split(' ')
 
 
-# @lru_cache(maxsize=None)
 def deep(n: int, iteration: int, max: int) -> int:
     x = (n,iteration, max)
     if x in CACHE:
@@ -43,17 +39,8 @@ def transform(n: int) -> list[int]:
     elif len(str(n)) % 2 == 0:
         num = str(n)
         mid = len(num) // 2
-        left = num[:mid]
-        if len(left) > 1:
-            left = left.lstrip("0")
-        if left == "":
-            left = 0
-        right = num[mid:]
-        if len(right) > 1:
-            right = right.lstrip("0")
-        if right == "":
-            right = 0
-        return [int(left), int(right)]
+        # int("004") -> 4, no need to strip leading zeros
+        return [int(num[mid:]), int(num[:mid])]
     else:
         return [n * 2024]
 
