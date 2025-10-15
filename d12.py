@@ -30,8 +30,10 @@ def map_fields(matrix: list[list[str]]) -> dict[str, list[Field]]:
     for k, v in area.items():
         if v == 1:
             p = 4
-        else:
+        elif v == 2:
             p = 6
+        else:
+            p = v * 2 + 2
         results[k] = [Field(area=v, permiter=p)]
     return results
 
@@ -47,6 +49,7 @@ def map_fields(matrix: list[list[str]]) -> dict[str, list[Field]]:
     [
         ([["A"]], {"A": [Field(area=1, permiter=4)]}),
         ([["A", "A"]], {"A": [Field(area=2, permiter=6)]}),
+        ([["A", "A", "A"]], {"A": [Field(area=3, permiter=8)]}),
     ],
 )
 def test_one_field(input, expected):
