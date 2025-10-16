@@ -15,8 +15,6 @@ class Field(BaseModel):
     permiter: int
 
 
-print(">" * 10)
-
 DIRECTIONS = ((-1, 0), (1, 0), (0, -1), (0, 1))
 
 
@@ -94,3 +92,10 @@ def test_field_in_1_column(input, expected):
 )
 def test_field_in_2_rows_columns(input, expected):
     assert map_fields(input) == expected
+
+
+# def test_map_fields_v2():
+#     matrix = [["A", "A"], ["A", "A"]]
+#     expected = {"A": [Field(area=4, permiter=8)]}
+#     assert map_fields_v2(matrix) == expected
+map_fields_v2([])
