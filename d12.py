@@ -17,6 +17,23 @@ class Field(BaseModel):
 
 print(">" * 10)
 
+DIRECTIONS = ((-1, 0), (1, 0), (0, -1), (0, 1))
+
+
+def map_fields_v2(matrix: list[list[str]]) -> dict[str, list[Field]] | None:
+    if not matrix:
+        return None
+    from collections import deque
+
+    queue = deque()
+    # seed with a first element
+    queue.append(matrix[0][0])
+    while queue:
+        current_cell = queue.popleft()
+        for dx, dy in DIRECTIONS:
+            print(dx, dy)
+        # check left
+
 
 def map_fields(matrix: list[list[str]]) -> dict[str, list[Field]]:
     area = {}
@@ -64,4 +81,16 @@ def test_fields_in_1_row(input, expected):
     ],
 )
 def test_field_in_1_column(input, expected):
+    assert map_fields(input) == expected
+
+
+@pytest.mark.parametrize(
+    "input, expected",
+    [
+        # AA
+        # AA
+        ([["A", "A"], ["A", "A"]], {"A": [Field(area=4, permiter=8)]}),
+    ],
+)
+def test_field_in_2_rows_columns(input, expected):
     assert map_fields(input) == expected
