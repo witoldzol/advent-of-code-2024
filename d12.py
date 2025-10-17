@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 import pytest
+from collections import deque
 # from d12 import map_fields, Field
 
 
@@ -18,19 +19,41 @@ class Field(BaseModel):
 DIRECTIONS = ((-1, 0), (1, 0), (0, -1), (0, 1))
 
 
+def parse_input_to_matrix(file_name: str) -> list[list[str]]:
+    matrix = []
+    with open(file_name) as f:
+        for l in f:
+            line = list(l.strip())
+            matrix.append(line)
+    return matrix
+
+
+def explore_new_field(start_coords: tuple[int, int]) -> list[tuple[int, int]]:
+    new_field = []
+    queue = deque()
+    queue.append(start_coords)
+
+
 def map_fields_v2(matrix: list[list[str]]) -> dict[str, list[Field]] | None:
     if not matrix:
         return None
-    from collections import deque
+    visited = set()
+    for x in range(len(matrix)):
+        for y in range(len(matrix[x])):
+            # check if we were here already
+            coords = (x, y)
+            if coords in visited:
+                continue
+            visited.add(coords)
+            # if we didn't visit this field before
+            # that means it's a new field
+            new_field = explore_new_field(coords)
 
-    queue = deque()
-    # seed with a first element
-    queue.append(matrix[0][0])
-    while queue:
-        current_cell = queue.popleft()
-        for dx, dy in DIRECTIONS:
-            print(dx, dy)
-        # check left
+    # while queue:
+    #     current_cell = queue.popleft()
+    #     for dx, dy in DIRECTIONS:
+    #         print(dx, dy)
+    #     # check left
 
 
 def map_fields(matrix: list[list[str]]) -> dict[str, list[Field]]:
@@ -98,4 +121,5 @@ def test_field_in_2_rows_columns(input, expected):
 #     matrix = [["A", "A"], ["A", "A"]]
 #     expected = {"A": [Field(area=4, permiter=8)]}
 #     assert map_fields_v2(matrix) == expected
-map_fields_v2([])
+
+map_fields_v2(parse_input_to_matrix("./testinput12"))
