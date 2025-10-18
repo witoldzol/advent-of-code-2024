@@ -12,15 +12,16 @@ with open("./testinput12") as f:
         matrix.append(fields)
 
 
-class Field(BaseModel):
-    area: int
-    permiter: int
-
-
 class Coordinates(BaseModel):
     model_config = ConfigDict(frozen=True)
     x: int
     y: int
+
+
+class Field(BaseModel):
+    area: int
+    perimiter: int
+    coordinates: set[Coordinates]
 
 
 DIRECTIONS = ((-1, 0), (1, 0), (0, -1), (0, 1))
@@ -47,7 +48,7 @@ def explore_new_field(start: Coordinates, matrix: list[list[str]]) -> set[Coordi
     new_field = []
     queue = deque()
     queue.append(start)
-    return (0, 0)
+    return {Coordinates(x=0, y=0)}
 
 
 def map_fields_v2(matrix: list[list[str]]) -> dict[str, list[Field]] | None:
@@ -88,7 +89,7 @@ def map_fields(matrix: list[list[str]]) -> dict[str, list[Field]]:
             p = 6
         else:
             p = v * 2 + 2
-        results[k] = [Field(area=v, permiter=p)]
+        results[k] = [Field(area=v, perimiter=p)]
     return results
 
 
@@ -101,9 +102,9 @@ def map_fields(matrix: list[list[str]]) -> dict[str, list[Field]]:
 @pytest.mark.parametrize(
     "input, expected",
     [
-        ([["A"]], {"A": [Field(area=1, permiter=4)]}),
-        ([["A", "A"]], {"A": [Field(area=2, permiter=6)]}),
-        ([["A", "A", "A"]], {"A": [Field(area=3, permiter=8)]}),
+        ([["A"]], {"A": [Field(area=1, perimiter=4, coordinates=set())]}),
+        ([["A", "A"]], {"A": [Field(area=2, perimiter=6, coordinates=set())]}),
+        ([["A", "A", "A"]], {"A": [Field(area=3, perimiter=8, coordinates=set())]}),
     ],
 )
 def test_fields_in_1_row(input, expected):
@@ -113,8 +114,8 @@ def test_fields_in_1_row(input, expected):
 @pytest.mark.parametrize(
     "input, expected",
     [
-        ([["A"], ["A"]], {"A": [Field(area=2, permiter=6)]}),
-        ([["A"], ["A"], ["A"]], {"A": [Field(area=3, permiter=8)]}),
+        ([["A"], ["A"]], {"A": [Field(area=2, perimiter=6, coordinates=set())]}),
+        ([["A"], ["A"], ["A"]], {"A": [Field(area=3, perimiter=8, coordinates=set())]}),
     ],
 )
 def test_field_in_1_column(input, expected):
@@ -126,7 +127,10 @@ def test_field_in_1_column(input, expected):
     [
         # AA
         # AA
-        ([["A", "A"], ["A", "A"]], {"A": [Field(area=4, permiter=8)]}),
+        (
+            [["A", "A"], ["A", "A"]],
+            {"A": [Field(area=4, perimiter=8, coordinates=set())]},
+        ),
     ],
 )
 def test_field_in_2_rows_columns(input, expected):
@@ -135,7 +139,12 @@ def test_field_in_2_rows_columns(input, expected):
 
 @pytest.mark.parametrize(
     "coordinates, matrix, expected",
-    [((0, 0), [[]], set()), ((0, 0), [], set()), ((0, 0), None, set())],
+    [
+        ((0, 0), [[]], set()),
+        ((0, 0), [], set()),
+        ((0, 0), None, set()),
+        ((0, 0), [["A"]], {Coordinates(x=0, y=0)}),
+    ],
 )
 def test_explore_new_field(coordinates, matrix, expected):
     c = Coordinates(x=coordinates[0], y=coordinates[1])
@@ -144,7 +153,7 @@ def test_explore_new_field(coordinates, matrix, expected):
 
 # def test_map_fields_v2():
 #     matrix = [["A", "A"], ["A", "A"]]
-#     expected = {"A": [Field(area=4, permiter=8)]}
+#     expected = {"A": [Field(area=4, perimiter=8)]}
 #     assert map_fields_v2(matrix) == expected
 
 map_fields_v2(parse_input_to_matrix("./testinput12"))
