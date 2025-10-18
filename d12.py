@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+import collections
 import pytest
 from collections import deque
 # from d12 import map_fields, Field
@@ -16,6 +17,12 @@ class Field(BaseModel):
     permiter: int
 
 
+class Coordinates(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    x: int
+    y: int
+
+
 DIRECTIONS = ((-1, 0), (1, 0), (0, -1), (0, 1))
 
 
@@ -28,10 +35,19 @@ def parse_input_to_matrix(file_name: str) -> list[list[str]]:
     return matrix
 
 
-def explore_new_field(start_coords: tuple[int, int]) -> list[tuple[int, int]]:
+def _is_empty(matrix: list[list[str]]) -> bool:
+    if matrix is None or not matrix:
+        return True
+    return not any(row for row in matrix)
+
+
+def explore_new_field(start: Coordinates, matrix: list[list[str]]) -> set[Coordinates]:
+    if _is_empty(matrix):
+        return set()
     new_field = []
     queue = deque()
-    queue.append(start_coords)
+    queue.append(start)
+    return (0, 0)
 
 
 def map_fields_v2(matrix: list[list[str]]) -> dict[str, list[Field]] | None:
@@ -41,13 +57,13 @@ def map_fields_v2(matrix: list[list[str]]) -> dict[str, list[Field]] | None:
     for x in range(len(matrix)):
         for y in range(len(matrix[x])):
             # check if we were here already
-            coords = (x, y)
+            coords = Coordinates(x=x, y=y)
             if coords in visited:
                 continue
             visited.add(coords)
             # if we didn't visit this field before
             # that means it's a new field
-            new_field = explore_new_field(coords)
+            new_field = explore_new_field(coords, matrix)
 
     # while queue:
     #     current_cell = queue.popleft()
@@ -115,6 +131,15 @@ def test_field_in_1_column(input, expected):
 )
 def test_field_in_2_rows_columns(input, expected):
     assert map_fields(input) == expected
+
+
+@pytest.mark.parametrize(
+    "coordinates, matrix, expected",
+    [((0, 0), [[]], set()), ((0, 0), [], set()), ((0, 0), None, set())],
+)
+def test_explore_new_field(coordinates, matrix, expected):
+    c = Coordinates(x=coordinates[0], y=coordinates[1])
+    assert expected == explore_new_field(c, matrix)
 
 
 # def test_map_fields_v2():
