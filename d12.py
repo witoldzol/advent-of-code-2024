@@ -75,8 +75,6 @@ def explore_new_field(
 
 
 def map_fields_v2(matrix: list[list[str]]) -> dict[str, list[Field]] | None:
-    # we should move this to the init function, rather than check over and over for every field
-    # let's assume matrix is ok at this stage
     if _is_empty(matrix):
         return None
     visited = set()
@@ -90,12 +88,7 @@ def map_fields_v2(matrix: list[list[str]]) -> dict[str, list[Field]] | None:
             # if we didn't visit this field before
             # that means it's a new field
             new_field = explore_new_field(coords, matrix, visited)
-
-    # while queue:
-    #     current_cell = queue.popleft()
-    #     for dx, dy in DIRECTIONS:
-    #         print(dx, dy)
-    #     # check left
+            # >>>> continue from heree
 
 
 # def map_fields(matrix: list[list[str]]) -> dict[str, list[Field]]:
@@ -103,7 +96,7 @@ def map_fields_v2(matrix: list[list[str]]) -> dict[str, list[Field]] | None:
 #     for row in matrix:
 #         for cell in row:
 #             if cell in area:
-#                 area[cell] += 1
+#                 area += 1
 #             else:
 #                 area[cell] = 1
 #     results = {}
@@ -213,9 +206,20 @@ def test_explore_new_field(coordinates, matrix, expected):
     assert expected == explore_new_field(c, matrix, visited)
 
 
-# def test_map_fields_v2():
-#     matrix = [["A", "A"], ["A", "A"]]
-#     expected = {"A": [Field(area=4, perimiter=8)]}
-#     assert map_fields_v2(matrix) == expected
+@pytest.mark.parametrize(
+    "matrix, expected",
+    [
+        (
+            (["A"]),
+            ({"A": [Field(area=1, perimiter=4, coordinates={Coordinates(x=0, y=0)})]}),
+        ),
+        # (([["A", "A"], ["A", "A"]]), ({"A": [Field(area=4, perimiter=8)]}))
+    ],
+)
+def test_map_fields_v2(matrix, expected):
+    # matrix = [["A", "A"], ["A", "A"]]
+    # expected = {"A": [Field(area=4, perimiter=8)]}
+    assert map_fields_v2(matrix) == expected
+
 
 map_fields_v2(parse_input_to_matrix("./testinput12"))
