@@ -43,8 +43,6 @@ def _is_empty(matrix: list[list[str]]) -> bool:
 
 
 def explore_new_field(start: Coordinates, matrix: list[list[str]]) -> set[Coordinates]:
-    if _is_empty(matrix):
-        return set()
     new_field = []
     queue = deque()
     queue.append(start)
@@ -52,7 +50,9 @@ def explore_new_field(start: Coordinates, matrix: list[list[str]]) -> set[Coordi
 
 
 def map_fields_v2(matrix: list[list[str]]) -> dict[str, list[Field]] | None:
-    if not matrix:
+    # we should move this to the init function, rather than check over and over for every field
+    # let's assume matrix is ok at this stage
+    if _is_empty(matrix):
         return None
     visited = set()
     for x in range(len(matrix)):
@@ -73,24 +73,24 @@ def map_fields_v2(matrix: list[list[str]]) -> dict[str, list[Field]] | None:
     #     # check left
 
 
-def map_fields(matrix: list[list[str]]) -> dict[str, list[Field]]:
-    area = {}
-    for row in matrix:
-        for cell in row:
-            if cell in area:
-                area[cell] += 1
-            else:
-                area[cell] = 1
-    results = {}
-    for k, v in area.items():
-        if v == 1:
-            p = 4
-        elif v == 2:
-            p = 6
-        else:
-            p = v * 2 + 2
-        results[k] = [Field(area=v, perimiter=p)]
-    return results
+# def map_fields(matrix: list[list[str]]) -> dict[str, list[Field]]:
+#     area = {}
+#     for row in matrix:
+#         for cell in row:
+#             if cell in area:
+#                 area[cell] += 1
+#             else:
+#                 area[cell] = 1
+#     results = {}
+#     for k, v in area.items():
+#         if v == 1:
+#             p = 4
+#         elif v == 2:
+#             p = 6
+#         else:
+#             p = v * 2 + 2
+#         results[k] = [Field(area=v, perimiter=p, coordinates=set())]
+#     return results
 
 
 ########################################
@@ -99,42 +99,42 @@ def map_fields(matrix: list[list[str]]) -> dict[str, list[Field]]:
 ########################################
 
 
-@pytest.mark.parametrize(
-    "input, expected",
-    [
-        ([["A"]], {"A": [Field(area=1, perimiter=4, coordinates=set())]}),
-        ([["A", "A"]], {"A": [Field(area=2, perimiter=6, coordinates=set())]}),
-        ([["A", "A", "A"]], {"A": [Field(area=3, perimiter=8, coordinates=set())]}),
-    ],
-)
-def test_fields_in_1_row(input, expected):
-    assert map_fields(input) == expected
+# @pytest.mark.parametrize(
+#     "input, expected",
+#     [
+#         ([["A"]], {"A": [Field(area=1, perimiter=4, coordinates=set())]}),
+#         ([["A", "A"]], {"A": [Field(area=2, perimiter=6, coordinates=set())]}),
+#         ([["A", "A", "A"]], {"A": [Field(area=3, perimiter=8, coordinates=set())]}),
+#     ],
+# )
+# def test_fields_in_1_row(input, expected):
+#     assert map_fields(input) == expected
 
 
-@pytest.mark.parametrize(
-    "input, expected",
-    [
-        ([["A"], ["A"]], {"A": [Field(area=2, perimiter=6, coordinates=set())]}),
-        ([["A"], ["A"], ["A"]], {"A": [Field(area=3, perimiter=8, coordinates=set())]}),
-    ],
-)
-def test_field_in_1_column(input, expected):
-    assert map_fields(input) == expected
+# @pytest.mark.parametrize(
+#     "input, expected",
+#     [
+#         ([["A"], ["A"]], {"A": [Field(area=2, perimiter=6, coordinates=set())]}),
+#         ([["A"], ["A"], ["A"]], {"A": [Field(area=3, perimiter=8, coordinates=set())]}),
+#     ],
+# )
+# def test_field_in_1_column(input, expected):
+#     assert map_fields(input) == expected
 
 
-@pytest.mark.parametrize(
-    "input, expected",
-    [
-        # AA
-        # AA
-        (
-            [["A", "A"], ["A", "A"]],
-            {"A": [Field(area=4, perimiter=8, coordinates=set())]},
-        ),
-    ],
-)
-def test_field_in_2_rows_columns(input, expected):
-    assert map_fields(input) == expected
+# @pytest.mark.parametrize(
+#     "input, expected",
+#     [
+#         # AA
+#         # AA
+#         (
+#             [["A", "A"], ["A", "A"]],
+#             {"A": [Field(area=4, perimiter=8, coordinates=set())]},
+#         ),
+#     ],
+# )
+# def test_field_in_2_rows_columns(input, expected):
+#     assert map_fields(input) == expected
 
 
 @pytest.mark.parametrize(
