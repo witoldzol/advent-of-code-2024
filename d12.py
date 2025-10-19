@@ -42,11 +42,36 @@ def _is_empty(matrix: list[list[str]]) -> bool:
     return not any(row for row in matrix)
 
 
-def explore_new_field(start: Coordinates, matrix: list[list[str]]) -> set[Coordinates]:
-    new_field = []
+def _is_in_bounds(x: int, y: int, matrix: list[list[str]]) -> bool:
+    return x >= 0 and x < len(matrix) and y >= 0 and y < len(matrix[0])
+
+
+def explore_new_field(
+    start: Coordinates, matrix: list[list[str]], visited
+) -> set[Coordinates]:
+    if not _is_in_bounds(start.x, start.y, matrix):
+        return set()
+    field_type = matrix[start.x][start.y]
+    new_field = set()
+    new_field.add(start)
+    visited.add((start.x, start.y))
     queue = deque()
     queue.append(start)
-    return {Coordinates(x=0, y=0)}
+    while queue:
+        c = queue.popleft()
+        # check directions
+        for dx, dy in DIRECTIONS:
+            xx = c.x + dx
+            yy = c.y + dy
+            if not _is_in_bounds(xx, yy, matrix):
+                continue
+            if (xx, yy) in visited:
+                continue
+            if matrix[xx][yy] == field_type:
+                new_field.add(Coordinates(x=xx, y=yy))
+                visited.add((xx, yy))
+                queue.append(Coordinates(x=xx, y=yy))
+    return new_field
 
 
 def map_fields_v2(matrix: list[list[str]]) -> dict[str, list[Field]] | None:
@@ -64,7 +89,7 @@ def map_fields_v2(matrix: list[list[str]]) -> dict[str, list[Field]] | None:
             visited.add(coords)
             # if we didn't visit this field before
             # that means it's a new field
-            new_field = explore_new_field(coords, matrix)
+            new_field = explore_new_field(coords, matrix, visited)
 
     # while queue:
     #     current_cell = queue.popleft()
@@ -140,15 +165,52 @@ def map_fields_v2(matrix: list[list[str]]) -> dict[str, list[Field]] | None:
 @pytest.mark.parametrize(
     "coordinates, matrix, expected",
     [
-        ((0, 0), [[]], set()),
-        ((0, 0), [], set()),
-        ((0, 0), None, set()),
+        # TODO check empty matrix in parent
+        # ((0, 0), [[]], set()),
+        # ((0, 0), [], set()),
+        # ((0, 0), None, set()),
         ((0, 0), [["A"]], {Coordinates(x=0, y=0)}),
+        ((0, 0), [["A", "A"]], {Coordinates(x=0, y=0), Coordinates(x=0, y=1)}),
+        ((0, 0), [["A", "B"]], {Coordinates(x=0, y=0)}),
+        (
+            (0, 0),
+            [["A", "A"], ["A", "A"]],
+            {
+                Coordinates(x=0, y=0),
+                Coordinates(x=0, y=1),
+                Coordinates(x=1, y=0),
+                Coordinates(x=1, y=1),
+            },
+        ),
+        (
+            (0, 0),
+            [["A", "B"], ["A", "A"]],
+            {
+                Coordinates(x=0, y=0),
+                Coordinates(x=1, y=0),
+                Coordinates(x=1, y=1),
+            },
+        ),
+        (
+            (0, 0),
+            [["A", "B"], ["B", "A"]],
+            {
+                Coordinates(x=0, y=0),
+            },
+        ),
+        (
+            (1, 1),
+            [["A", "B"], ["B", "A"]],
+            {
+                Coordinates(x=1, y=1),
+            },
+        ),
     ],
 )
 def test_explore_new_field(coordinates, matrix, expected):
     c = Coordinates(x=coordinates[0], y=coordinates[1])
-    assert expected == explore_new_field(c, matrix)
+    visited = set()
+    assert expected == explore_new_field(c, matrix, visited)
 
 
 # def test_map_fields_v2():
