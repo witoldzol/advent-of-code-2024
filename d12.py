@@ -92,6 +92,10 @@ def calculate_perimiter(field_coordinates: set[Coordinates]) -> int:
     return count
 
 
+def calculate_perimiter_v2(field_coordinates: set[Coordinates]) -> int:
+    return 5
+
+
 def map_fields(matrix: list[list[str]]) -> list[Field]:
     if _is_empty(matrix):
         return None
@@ -250,6 +254,26 @@ def test_map_fields(matrix, expected):
 )
 def test_calculate_perimiter(field, expected):
     assert expected == calculate_perimiter(field)
+
+
+@pytest.mark.parametrize(
+    "field, expected",
+    [
+        ({Coordinates(x=0, y=0)}, 4),
+        ({Coordinates(x=0, y=0), Coordinates(x=0, y=1)}, 4),
+        (
+            {
+                Coordinates(x=0, y=0),
+                Coordinates(x=0, y=1),
+                Coordinates(x=1, y=0),
+                Coordinates(x=1, y=1),
+            },
+            4,
+        ),
+    ],
+)
+def test_calculate_perimiter_v2(field, expected):
+    assert expected == calculate_perimiter_v2(field)
 
 
 input_name = "./testinput12"
