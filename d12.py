@@ -91,9 +91,29 @@ def calculate_perimiter(field_coordinates: set[Coordinates]) -> int:
                 count += 1
     return count
 
+def get_runs(fields):
+    # (0,0) (0,1) (0,2)
+    # 0,0
+# if 0,0 + 1,0 in bounds
+# new_run_set{(0,0),(0,1)}
+# contineu
+# if 1,0 + 1,0 in bounds
+# new_run.add(2,0)
+# etc
 
-def calculate_perimiter_v2(field_coordinates: set[Coordinates]) -> int:
-    return 5
+def get_runs(field_coordinates: set[Coordinates]) -> int:
+    for c in field_coordinates:
+        for dx, dy in DIRECTIONS:
+            xx = dx + c.x
+            yy = dy + c.y
+            if Coordinates(x=xx, y=yy) in field_coordinates:
+                new_run = {c,Coordinates(x=xx, y=yy)}
+                
+                
+
+
+    return count
+
 
 
 def map_fields(matrix: list[list[str]]) -> list[Field]:
