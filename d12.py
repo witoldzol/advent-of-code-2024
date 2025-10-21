@@ -1,8 +1,6 @@
 from pydantic import BaseModel, ConfigDict
-import collections
 import pytest
 from collections import deque
-# from d12 import map_fields, Field
 
 
 matrix = []
@@ -74,10 +72,31 @@ def explore_new_field(
     return new_field
 
 
-def map_fields_v2(matrix: list[list[str]]) -> dict[str, list[Field]] | None:
+def calculate_perimiter(field_coordinates: set[Coordinates]) -> int:
+    count = 0
+    # X == permiter
+    # A = field
+    #   X
+    # X A X
+    # X A A X
+    #   X X
+    for c in field_coordinates:
+        for dx, dy in DIRECTIONS:
+            xx = dx + c.x
+            yy = dy + c.y
+            # check every direction away from every part of a field,
+            # if it's not a part of a field
+            # that means it's a perimiter
+            if Coordinates(x=xx, y=yy) not in field_coordinates:
+                count += 1
+    return count
+
+
+def map_fields_v2(matrix: list[list[str]]) -> list[Field]:
     if _is_empty(matrix):
         return None
     visited = set()
+    fields = []
     for x in range(len(matrix)):
         for y in range(len(matrix[x])):
             # check if we were here already
@@ -87,28 +106,13 @@ def map_fields_v2(matrix: list[list[str]]) -> dict[str, list[Field]] | None:
             visited.add(coords)
             # if we didn't visit this field before
             # that means it's a new field
-            new_field = explore_new_field(coords, matrix, visited)
-            # >>>> continue from heree
-
-
-# def map_fields(matrix: list[list[str]]) -> dict[str, list[Field]]:
-#     area = {}
-#     for row in matrix:
-#         for cell in row:
-#             if cell in area:
-#                 area += 1
-#             else:
-#                 area[cell] = 1
-#     results = {}
-#     for k, v in area.items():
-#         if v == 1:
-#             p = 4
-#         elif v == 2:
-#             p = 6
-#         else:
-#             p = v * 2 + 2
-#         results[k] = [Field(area=v, perimiter=p, coordinates=set())]
-#     return results
+            field_coordinates = explore_new_field(coords, matrix, visited)
+            area = len(field_coordinates)
+            perimiter = calculate_perimiter(field_coordinates)
+            fields.append(
+                Field(area=area, perimiter=perimiter, coordinates=field_coordinates)
+            )
+    return fields
 
 
 ########################################
@@ -210,16 +214,33 @@ def test_explore_new_field(coordinates, matrix, expected):
     "matrix, expected",
     [
         (
-            (["A"]),
-            ({"A": [Field(area=1, perimiter=4, coordinates={Coordinates(x=0, y=0)})]}),
+            ["A"],
+            [Field(area=1, perimiter=4, coordinates={Coordinates(x=0, y=0)})],
         ),
-        # (([["A", "A"], ["A", "A"]]), ({"A": [Field(area=4, perimiter=8)]}))
     ],
 )
 def test_map_fields_v2(matrix, expected):
-    # matrix = [["A", "A"], ["A", "A"]]
-    # expected = {"A": [Field(area=4, perimiter=8)]}
     assert map_fields_v2(matrix) == expected
 
 
 map_fields_v2(parse_input_to_matrix("./testinput12"))
+
+
+@pytest.mark.parametrize(
+    "field, expected",
+    [
+        ({Coordinates(x=0, y=0)}, 4),
+        ({Coordinates(x=0, y=0), Coordinates(x=0, y=1)}, 6),
+        (
+            {
+                Coordinates(x=0, y=0),
+                Coordinates(x=0, y=1),
+                Coordinates(x=1, y=0),
+                Coordinates(x=1, y=1),
+            },
+            8,
+        ),
+    ],
+)
+def test_calculate_perimiter(field, expected):
+    assert expected == calculate_perimiter(field)
