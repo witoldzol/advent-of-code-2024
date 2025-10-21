@@ -252,4 +252,23 @@ def test_calculate_perimiter(field, expected):
     assert expected == calculate_perimiter(field)
 
 
-map_fields(parse_input_to_matrix("./testinput12"))
+input_name = "./testinput12"
+fields = map_fields(parse_input_to_matrix(input_name))
+price = 0
+for f in fields:
+    price += f.area * f.perimiter
+print(f"Total price: {price} for input {input_name}")
+
+input_name = "./testinput12b"
+fields = map_fields(parse_input_to_matrix(input_name))
+price = 0
+for f in fields:
+    price += f.area * f.perimiter
+print(f"Total price: {price} for input {input_name}")
+
+input_name = "./input12"
+fields = map_fields(parse_input_to_matrix(input_name))
+price = 0
+for f in fields:
+    price += f.area * f.perimiter
+print(f"Total price: {price} for input {input_name}")
