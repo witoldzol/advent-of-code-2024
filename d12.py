@@ -99,7 +99,7 @@ def turn_right_and_have_a_neighbour(
     initial_direction: tuple[int, int],
     matrix: list[list[str]],
     start_position: Coordinates,
-) -> bool:
+) -> tuple[int, int] | None:
     x, y = initial_direction
     assert x >= -1 or x <= 1
     assert y >= -1 or y <= 1
@@ -115,21 +115,27 @@ def turn_right_and_have_a_neighbour(
         xx = y
     field_type = matrix[start_position.x][start_position.y]
     if _is_in_bounds(xx, yy, matrix) and matrix[xx][yy] == field_type:
-        return True
-    return False
+        return (xx, yy)
+    return None
 
 
-# def get_runs(field_coordinates: set[Coordinates]) -> int:
-#     for c in field_coordinates:
-#         for dx, dy in DIRECTIONS:
-#             xx = dx + c.x
-#             yy = dy + c.y
-#             if (
-#                 Coordinates(x=xx, y=yy) not in field_coordinates
-#                 and turn_right_and_have_a_neighbour()
-#             ):
-#                 new_run = {c, Coordinates(x=xx, y=yy)}
-#     return count
+def get_runs(field_coordinates: set[Coordinates]) -> int:
+    result = []
+    for c in field_coordinates:
+        for dx, dy in [
+            (1, 0),
+            (0, 1),
+        ]:  # subset of direction, we only need to check x and y axis
+            xx = dx + c.x
+            yy = dy + c.y
+            new_run = set()
+            while Coordinates(x=xx, y=yy) not in field_coordinates:
+                new_direction = turn_right_and_have_a_neighbour((xx, yy), matrix, c)
+                if new_direction is None:
+                    break
+                new_run.add((c, Coordinates(x=xx, y=yy)))
+                xx, yy = new_direction
+    return count
 
 
 def map_fields(matrix: list[list[str]]) -> list[Field]:
