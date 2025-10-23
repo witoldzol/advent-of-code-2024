@@ -91,29 +91,45 @@ def calculate_perimiter(field_coordinates: set[Coordinates]) -> int:
                 count += 1
     return count
 
-def get_runs(fields):
-    # (0,0) (0,1) (0,2)
-    # 0,0
-# if 0,0 + 1,0 in bounds
-# new_run_set{(0,0),(0,1)}
-# contineu
-# if 1,0 + 1,0 in bounds
-# new_run.add(2,0)
-# etc
 
-def get_runs(field_coordinates: set[Coordinates]) -> int:
-    for c in field_coordinates:
-        for dx, dy in DIRECTIONS:
-            xx = dx + c.x
-            yy = dy + c.y
-            if Coordinates(x=xx, y=yy) in field_coordinates:
-                new_run = {c,Coordinates(x=xx, y=yy)}
-                
-                
+# def get_runs(fields, direction: tuple[int,int]):
 
 
-    return count
+def turn_right_and_have_a_neighbour(
+    initial_direction: tuple[int, int],
+    matrix: list[list[str]],
+    start_position: Coordinates,
+) -> bool:
+    x, y = initial_direction
+    assert x >= -1 or x <= 1
+    assert y >= -1 or y <= 1
+    # to turn 'right' depends on initial direction
+    # initial direction (-1,0), so we move in X axis
+    # turn right -> change original axis to 0
+    # update the other axis with the same value
+    if x:
+        xx = 0
+        yy = x
+    else:
+        yy = 0
+        xx = y
+    field_type = matrix[start_position.x][start_position.y]
+    if _is_in_bounds(xx, yy, matrix) and matrix[xx][yy] == field_type:
+        return True
+    return False
 
+
+# def get_runs(field_coordinates: set[Coordinates]) -> int:
+#     for c in field_coordinates:
+#         for dx, dy in DIRECTIONS:
+#             xx = dx + c.x
+#             yy = dy + c.y
+#             if (
+#                 Coordinates(x=xx, y=yy) not in field_coordinates
+#                 and turn_right_and_have_a_neighbour()
+#             ):
+#                 new_run = {c, Coordinates(x=xx, y=yy)}
+#     return count
 
 
 def map_fields(matrix: list[list[str]]) -> list[Field]:
@@ -276,26 +292,6 @@ def test_calculate_perimiter(field, expected):
     assert expected == calculate_perimiter(field)
 
 
-@pytest.mark.parametrize(
-    "field, expected",
-    [
-        ({Coordinates(x=0, y=0)}, 4),
-        ({Coordinates(x=0, y=0), Coordinates(x=0, y=1)}, 4),
-        (
-            {
-                Coordinates(x=0, y=0),
-                Coordinates(x=0, y=1),
-                Coordinates(x=1, y=0),
-                Coordinates(x=1, y=1),
-            },
-            4,
-        ),
-    ],
-)
-def test_calculate_perimiter_v2(field, expected):
-    assert expected == calculate_perimiter_v2(field)
-
-
 input_name = "./testinput12"
 fields = map_fields(parse_input_to_matrix(input_name))
 price = 0
@@ -316,3 +312,5 @@ price = 0
 for f in fields:
     price += f.area * f.perimiter
 print(f"Total price: {price} for input {input_name}")
+# test run
+print(turn_right_and_have_a_neighbour((0, 1), matrix, Coordinates(x=0, y=0)))
