@@ -1,7 +1,10 @@
 from pydantic import BaseModel, ConfigDict
 import pytest
+import logging
 from collections import deque
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 matrix = []
 with open("./testinput12") as f:
@@ -92,50 +95,80 @@ def calculate_perimiter(field_coordinates: set[Coordinates]) -> int:
     return count
 
 
-# def get_runs(fields, direction: tuple[int,int]):
+# def turn_right_and_have_a_neighbour(
+#     initial_direction: tuple[int, int],
+#     matrix: list[list[str]],
+#     start_position: Coordinates,
+# ) -> tuple[int, int] | None:
+#     x, y = initial_direction
+#     assert x >= -1 or x <= 1
+#     assert y >= -1 or y <= 1
+#     # to turn 'right' depends on initial direction
+#     # initial direction (-1,0), so we move in X axis
+#     # turn right -> change original axis to 0
+#     # update the other axis with the same value
+#     if x:
+#         xx = 0
+#         yy = x
+#     else:
+#         yy = 0
+#         xx = y
+#     field_type = matrix[start_position.x][start_position.y]
+#     if _is_in_bounds(xx, yy, matrix) and matrix[xx][yy] == field_type:
+#         return (xx, yy)
+#     return None
 
 
-def turn_right_and_have_a_neighbour(
-    initial_direction: tuple[int, int],
-    matrix: list[list[str]],
-    start_position: Coordinates,
-) -> tuple[int, int] | None:
-    x, y = initial_direction
-    assert x >= -1 or x <= 1
-    assert y >= -1 or y <= 1
-    # to turn 'right' depends on initial direction
-    # initial direction (-1,0), so we move in X axis
-    # turn right -> change original axis to 0
-    # update the other axis with the same value
-    if x:
-        xx = 0
-        yy = x
-    else:
-        yy = 0
-        xx = y
-    field_type = matrix[start_position.x][start_position.y]
-    if _is_in_bounds(xx, yy, matrix) and matrix[xx][yy] == field_type:
-        return (xx, yy)
-    return None
-
-
-def get_runs(field_coordinates: set[Coordinates]) -> int:
+# B B B A
+# A A A A
+def count_edges(field_coordinates: set[Coordinates], matrix: list[list[str]]) -> int:
     result = []
     for c in field_coordinates:
-        for dx, dy in [
-            (1, 0),
-            (0, 1),
-        ]:  # subset of direction, we only need to check x and y axis
+        # for dx, dy in [ (1, 0), (0, 1), ]:  # subset of direction, we only need to check x and y axis
+        logger.info(f"START new node: ({c.x, c.y})")
+        for dx, dy in DIRECTIONS:
+            logger.info(f"  DIRECTION : ({dx, dy})")
             xx = dx + c.x
             yy = dy + c.y
-            new_run = set()
-            while Coordinates(x=xx, y=yy) not in field_coordinates:
-                new_direction = turn_right_and_have_a_neighbour((xx, yy), matrix, c)
-                if new_direction is None:
-                    break
-                new_run.add((c, Coordinates(x=xx, y=yy)))
-                xx, yy = new_direction
-    return count
+            # if this cell is an edge
+            if not _is_in_bounds(xx, yy, matrix) or matrix[xx][yy] != matrix[c.x][c.y]:
+                logger.info(
+                    f"      NODE: ({c.x, c.y}) is an EDGE in direction ({dx, dy})"
+                )
+                # check if we have a neighbor to the right or down
+                for ddx, ddy in [(0, 1), (1, 0)]:
+                    neighbor_x = c.x + ddx
+                    neighbor_y = c.y + ddy
+                    # check if we have a neighbor
+                    if (
+                        _is_in_bounds(neighbor_x, neighbor_y, matrix)
+                        and matrix[c.x][c.y] == matrix[neighbor_x][neighbor_y]
+                    ):
+                        # if we do, check if neighbor is also and edge in the same direction
+                        # example
+                        # _ _
+                        # A A (first A is and edge if we look 'up' and it has a neighbor A, which is also and edge in the same direction)
+                        # example 2:
+                        # line1: _ A
+                        # line2: A A ( first A on line 2, has neighbor, but that neighbor is not edge if we look up)
+                        xxx = dx + neighbor_x
+                        yyy = dy + neighbor_y
+                        if (
+                            not _is_in_bounds(xxx, yyy, matrix)
+                            or matrix[xxx][yyy] != matrix[c.x][c.y]
+                        ):
+                            # if our neighbor is also and edge in the same direction, create an edge
+                            edge = {(c.x, c.y), (neighbor_x, neighbor_y)}
+                            # repeat this process until we hit an end
+                            print(f"found an edge {edge}")
+
+            # while Coordinates(x=xx, y=yy) not in field_coordinates:
+            #     new_direction = turn_right_and_have_a_neighbour((xx, yy), matrix, c)
+            #     if new_direction is None:
+            #         break
+            #     new_run.add((c, Coordinates(x=xx, y=yy)))
+            #     xx, yy = new_direction
+    return 5
 
 
 def map_fields(matrix: list[list[str]]) -> list[Field]:
@@ -298,25 +331,26 @@ def test_calculate_perimiter(field, expected):
     assert expected == calculate_perimiter(field)
 
 
-input_name = "./testinput12"
-fields = map_fields(parse_input_to_matrix(input_name))
-price = 0
-for f in fields:
-    price += f.area * f.perimiter
-print(f"Total price: {price} for input {input_name}")
-
-input_name = "./testinput12b"
-fields = map_fields(parse_input_to_matrix(input_name))
-price = 0
-for f in fields:
-    price += f.area * f.perimiter
-print(f"Total price: {price} for input {input_name}")
-
-input_name = "./input12"
-fields = map_fields(parse_input_to_matrix(input_name))
-price = 0
-for f in fields:
-    price += f.area * f.perimiter
-print(f"Total price: {price} for input {input_name}")
+# input_name = "./testinput12"
+# fields = map_fields(parse_input_to_matrix(input_name))
+# price = 0
+# for f in fields:
+#     price += f.area * f.perimiter
+# print(f"Total price: {price} for input {input_name}")
+#
+# input_name = "./testinput12b"
+# fields = map_fields(parse_input_to_matrix(input_name))
+# price = 0
+# for f in fields:
+#     price += f.area * f.perimiter
+# print(f"Total price: {price} for input {input_name}")
+#
+# input_name = "./input12"
+# fields = map_fields(parse_input_to_matrix(input_name))
+# price = 0
+# for f in fields:
+#     price += f.area * f.perimiter
+# print(f"Total price: {price} for input {input_name}")
 # test run
-print(turn_right_and_have_a_neighbour((0, 1), matrix, Coordinates(x=0, y=0)))
+# print(turn_right_and_have_a_neighbour((0, 1), matrix, Coordinates(x=0, y=0)))
+count_edges({Coordinates(x=0, y=0), Coordinates(x=0, y=1)}, matrix)
