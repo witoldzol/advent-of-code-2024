@@ -95,38 +95,69 @@ def calculate_perimiter(field_coordinates: set[Coordinates]) -> int:
     return count
 
 
-# def turn_right_and_have_a_neighbour(
-#     initial_direction: tuple[int, int],
-#     matrix: list[list[str]],
-#     start_position: Coordinates,
-# ) -> tuple[int, int] | None:
-#     x, y = initial_direction
-#     assert x >= -1 or x <= 1
-#     assert y >= -1 or y <= 1
-#     # to turn 'right' depends on initial direction
-#     # initial direction (-1,0), so we move in X axis
-#     # turn right -> change original axis to 0
-#     # update the other axis with the same value
-#     if x:
-#         xx = 0
-#         yy = x
-#     else:
-#         yy = 0
-#         xx = y
-#     field_type = matrix[start_position.x][start_position.y]
-#     if _is_in_bounds(xx, yy, matrix) and matrix[xx][yy] == field_type:
-#         return (xx, yy)
-#     return None
+def get_neighbour_coordinates_that_match_edge(
+    edge_direction: tuple[int, int],
+    matrix: list[list[str]],
+    start_position: Coordinates,
+) -> tuple[int, int] | None:
+    x, y = edge_direction
+    assert x >= -1 or x <= 1
+    assert y >= -1 or y <= 1
+    # to turn 'right' depends on initial direction
+    # initial direction (-1,0), so we move in X axis
+    # turn right -> change original axis to 0
+    # update the other axis with the same value
+    if x:
+        xx = 0
+        yy = x
+    else:
+        yy = 0
+        xx = y
+    field_type = matrix[start_position.x][start_position.y]
+    if _is_in_bounds(xx, yy, matrix) and matrix[xx][yy] == field_type:
+        logger.info(
+            f"NEIGHBOUR DETECTED for node ({start_position.x},{start_position.y}) -> ({xx},{yy})"
+        )
+        return (xx, yy)
+    return None
 
 
-# B B B A
-# A A A A
+def extend_edge(
+    edge, start, edge_direction, neighbor_coords, matrix
+) -> set[tuple[int, int]]:
+    start_x, start_y = start
+    e_dy, e_dy = edge_direction
+    neighbor_x, neighbor_y = neighbor_coords
+    return {(5, 5)}
+    # check if we have a neighbor
+
+    # if we do, check if neighbor is also and edge in the same direction
+    # example
+    # _ _
+    # A A (first A is and edge if we look 'up' and it has a neighbor A, which is also and edge in the same direction)
+    # example 2:
+    # line1: _ A
+    # line2: A A ( first A on line 2, has neighbor, but that neighbor is not edge if we look up)
+
+    # xxx = dx + neighbor_x
+    # yyy = dy + neighbor_y
+    # if (
+    #     not _is_in_bounds(xxx, yyy, matrix)
+    #     or matrix[xxx][yyy] != matrix[start_x][start_y]
+    # ):
+    #     # if our neighbor is also and edge in the same direction, create an edge
+    #     edge.add((neighbor_x, neighbor_y))
+    #     # repeat this process until we hit an end
+    #     print(f"found an edge {edge}")
+
+
 def count_edges(field_coordinates: set[Coordinates], matrix: list[list[str]]) -> int:
     result = []
     for c in field_coordinates:
         # for dx, dy in [ (1, 0), (0, 1), ]:  # subset of direction, we only need to check x and y axis
         logger.info(f"START new node: ({c.x, c.y})")
         for dx, dy in DIRECTIONS:
+            edge = set()  # field can be an edge in any direction
             logger.info(f"  DIRECTION : ({dx, dy})")
             xx = dx + c.x
             yy = dy + c.y
@@ -135,32 +166,25 @@ def count_edges(field_coordinates: set[Coordinates], matrix: list[list[str]]) ->
                 logger.info(
                     f"      NODE: ({c.x, c.y}) is an EDGE in direction ({dx, dy})"
                 )
+                edge.add((c.x, c.y))
                 # check if we have a neighbor to the right or down
-                for ddx, ddy in [(0, 1), (1, 0)]:
-                    neighbor_x = c.x + ddx
-                    neighbor_y = c.y + ddy
-                    # check if we have a neighbor
-                    if (
-                        _is_in_bounds(neighbor_x, neighbor_y, matrix)
-                        and matrix[c.x][c.y] == matrix[neighbor_x][neighbor_y]
-                    ):
-                        # if we do, check if neighbor is also and edge in the same direction
-                        # example
-                        # _ _
-                        # A A (first A is and edge if we look 'up' and it has a neighbor A, which is also and edge in the same direction)
-                        # example 2:
-                        # line1: _ A
-                        # line2: A A ( first A on line 2, has neighbor, but that neighbor is not edge if we look up)
-                        xxx = dx + neighbor_x
-                        yyy = dy + neighbor_y
-                        if (
-                            not _is_in_bounds(xxx, yyy, matrix)
-                            or matrix[xxx][yyy] != matrix[c.x][c.y]
-                        ):
-                            # if our neighbor is also and edge in the same direction, create an edge
-                            edge = {(c.x, c.y), (neighbor_x, neighbor_y)}
-                            # repeat this process until we hit an end
-                            print(f"found an edge {edge}")
+                # for ddx, ddy in [(0, 1), (1, 0)]:
+                neighbor_coords = get_neighbour_coordinates_that_match_edge(
+                    edge_direction=(dx, dy), matrix=matrix, start_position=c
+                )
+                if neighbor_coords is None:
+                    # no neighbor in the direction of the edge
+                    if edge:
+                        result.append(edge)
+                    continue
+
+                extend_edge(
+                    edge=edge,
+                    start=(c.x, c.y),
+                    edge_direction=(dx, dy),
+                    neighbor_coords=neighbor_coords,
+                    matrix=matrix,
+                )
 
             # while Coordinates(x=xx, y=yy) not in field_coordinates:
             #     new_direction = turn_right_and_have_a_neighbour((xx, yy), matrix, c)
@@ -353,4 +377,6 @@ def test_calculate_perimiter(field, expected):
 # print(f"Total price: {price} for input {input_name}")
 # test run
 # print(turn_right_and_have_a_neighbour((0, 1), matrix, Coordinates(x=0, y=0)))
-count_edges({Coordinates(x=0, y=0), Coordinates(x=0, y=1)}, matrix)
+# count_edges({Coordinates(x=0, y=0)}, matrix)
+count_edges({Coordinates(x=0, y=0)}, [["A", "A"]])
+# count_edges({Coordinates(x=0, y=0), Coordinates(x=0, y=1)}, matrix)
