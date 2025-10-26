@@ -108,11 +108,11 @@ def get_neighbour_coordinates_that_match_edge(
     # turn right -> change original axis to 0
     # update the other axis with the same value
     if x:
-        xx = 0
-        yy = x
+        xx = start_position.x
+        yy = x + start_position.y
     else:
-        yy = 0
-        xx = y
+        xx = x + start_position.x
+        yy = start_position.y
     field_type = matrix[start_position.x][start_position.y]
     if _is_in_bounds(xx, yy, matrix) and matrix[xx][yy] == field_type:
         logger.info(
@@ -126,29 +126,42 @@ def extend_edge(
     edge, start, edge_direction, neighbor_coords, matrix
 ) -> set[tuple[int, int]]:
     start_x, start_y = start
-    e_dy, e_dy = edge_direction
+    e_dx, e_dy = edge_direction
     neighbor_x, neighbor_y = neighbor_coords
-    return {(5, 5)}
-    # check if we have a neighbor
-
-    # if we do, check if neighbor is also and edge in the same direction
-    # example
-    # _ _
-    # A A (first A is and edge if we look 'up' and it has a neighbor A, which is also and edge in the same direction)
-    # example 2:
-    # line1: _ A
-    # line2: A A ( first A on line 2, has neighbor, but that neighbor is not edge if we look up)
-
-    # xxx = dx + neighbor_x
-    # yyy = dy + neighbor_y
-    # if (
-    #     not _is_in_bounds(xxx, yyy, matrix)
-    #     or matrix[xxx][yyy] != matrix[start_x][start_y]
-    # ):
-    #     # if our neighbor is also and edge in the same direction, create an edge
-    #     edge.add((neighbor_x, neighbor_y))
-    #     # repeat this process until we hit an end
-    #     print(f"found an edge {edge}")
+    logger.info(
+        f"examining NEIGHBOUR ({neighbor_x},{neighbor_y}) in the same direction of edge ({e_dx},{e_dy})"
+    )
+    # we know we have a neighbor to the 'right' relative to the directio of the edge
+    # now we have to verify if this neighbor is also an edge
+    xx = neighbor_x + e_dx
+    yy = neighbor_y + e_dy
+    if (
+        _is_in_bounds(xx, yy, matrix)
+        and matrix[xx][xx] == matrix[neighbor_x][neighbor_y]
+    ):
+        # not an edge, so we can return early
+        return edge
+    logger.info(
+        f"      NODE: ({neighbor_x},{neighbor_y}) is an EDGE in direction ({e_dx},{e_dy})"
+    )
+    edge.add((neighbor_x, neighbor_y))
+    print(f"found an edge {edge}")
+    # repeat neighbor discovery
+    neighbor_coords = get_neighbour_coordinates_that_match_edge(
+        edge_direction=(e_dx, e_dy),
+        matrix=matrix,
+        start_position=Coordinates(x=neighbor_x, y=neighbor_y),
+    )
+    if neighbor_coords is None:
+        # no neighbor in the direction of the edge
+        return edge
+    return extend_edge(
+        edge=edge,
+        start=(neighbor_x, neighbor_y),
+        edge_direction=(e_dx, e_dy),
+        neighbor_coords=neighbor_coords,
+        matrix=matrix,
+    )
 
 
 def count_edges(field_coordinates: set[Coordinates], matrix: list[list[str]]) -> int:
@@ -178,7 +191,7 @@ def count_edges(field_coordinates: set[Coordinates], matrix: list[list[str]]) ->
                         result.append(edge)
                     continue
 
-                extend_edge(
+                edge = extend_edge(
                     edge=edge,
                     start=(c.x, c.y),
                     edge_direction=(dx, dy),
