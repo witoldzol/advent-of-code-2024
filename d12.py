@@ -107,12 +107,43 @@ def get_neighbour_coordinates_that_match_edge(
     # initial direction (-1,0), so we move in X axis
     # turn right -> change original axis to 0
     # update the other axis with the same value
+    # example:
+    # start 0,0
+    # direction -1,0
+    # _ _
+    # A A
+    # right is 0,1
+    # ----------
+    # start 0,0
+    # direction 1,0
+    # _ _ _
+    # _ A A
+    # _ _ _
+    # right is 0, -1
+    # ----------
+    # start 0,0
+    # direction 1,0
+    # _ _ _
+    # _ A A
+    # _ _ _
+    # right is 0, -1
+
+    logger.info("get neighbor coords, edge_direction coords are ->")
+    logger.info(edge_direction)
+    logger.info("*" * 100)
     if x:
         xx = start_position.x
-        yy = x + start_position.y
+        yy = x * (-1) + start_position.y
     else:
-        xx = x + start_position.x
+        xx = y * (-1) + start_position.x
         yy = start_position.y
+
+    # if x:
+    #     xx = start_position.x
+    #     yy = x + start_position.y
+    # else:
+    #     xx = x + start_position.x
+    #     yy = start_position.y
     field_type = matrix[start_position.x][start_position.y]
     if _is_in_bounds(xx, yy, matrix) and matrix[xx][yy] == field_type:
         logger.info(
@@ -125,11 +156,14 @@ def get_neighbour_coordinates_that_match_edge(
 def extend_edge(
     edge, start, edge_direction, neighbor_coords, matrix
 ) -> set[tuple[int, int]]:
+    logger.info(">" * 100)
+    logger.info("EXTEND EDGE START")
+    logger.info(">" * 100)
     start_x, start_y = start
     e_dx, e_dy = edge_direction
     neighbor_x, neighbor_y = neighbor_coords
     logger.info(
-        f"examining NEIGHBOUR ({neighbor_x},{neighbor_y}) in the same direction of edge ({e_dx},{e_dy})"
+        f"examining NEIGHBOUR ({neighbor_x},{neighbor_y}) of start position ({start_x, start_y})in the same direction of edge ({e_dx},{e_dy})"
     )
     # we know we have a neighbor to the 'right' relative to the directio of the edge
     # now we have to verify if this neighbor is also an edge
@@ -137,7 +171,7 @@ def extend_edge(
     yy = neighbor_y + e_dy
     if (
         _is_in_bounds(xx, yy, matrix)
-        and matrix[xx][xx] == matrix[neighbor_x][neighbor_y]
+        and matrix[xx][yy] == matrix[neighbor_x][neighbor_y]
     ):
         # not an edge, so we can return early
         return edge
@@ -391,5 +425,20 @@ def test_calculate_perimiter(field, expected):
 # test run
 # print(turn_right_and_have_a_neighbour((0, 1), matrix, Coordinates(x=0, y=0)))
 # count_edges({Coordinates(x=0, y=0)}, matrix)
-count_edges({Coordinates(x=0, y=0)}, [["A", "A"]])
+# count_edges({Coordinates(x=0, y=0)}, [["A", "A"]])
 # count_edges({Coordinates(x=0, y=0), Coordinates(x=0, y=1)}, matrix)
+
+
+def test_get_neighbour_coordinates_that_match_edge():
+    expected = None
+    actual = get_neighbour_coordinates_that_match_edge(
+        edge_direction=(0, 1), matrix=[["A", "A"]], start_position=Coordinates(x=0, y=0)
+    )
+    assert expected == actual
+    expected = (0, 1)
+    actual = get_neighbour_coordinates_that_match_edge(
+        edge_direction=(-1, 0),
+        matrix=[["A", "A"]],
+        start_position=Coordinates(x=0, y=0),
+    )
+    assert expected == actual
