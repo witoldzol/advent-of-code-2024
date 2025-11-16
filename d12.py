@@ -100,6 +100,7 @@ def get_neighbour_coordinates_that_match_edge(
     matrix: list[list[str]],
     start_position: Coordinates,
 ) -> tuple[int, int] | None:
+    """detectes if neighbor exists, doesn't check if neighbor is a part of the edge"""
     x, y = edge_direction
     assert x >= -1 or x <= 1
     assert y >= -1 or y <= 1
@@ -110,16 +111,19 @@ def get_neighbour_coordinates_that_match_edge(
     # example:
     # start 0,0
     # direction -1,0
-    # _ _
+    # edge points here
+    # _
+    # ^
+    # |
     # A A
-    # right is 0,1
+    # 'right' of a 0,0 cell that has edge towards -1,0 is === 0,1, and 0,1 has an edge at -1,1 ( with direction of -1,0)
     # ----------
     # start 0,0
     # direction 1,0
     # _ _ _
     # _ A A
     # _ _ _
-    # right is 0, -1
+    # right is 0, -1 ( in this case empty )
     # ----------
     # start 0,0
     # direction 1,0
@@ -137,13 +141,6 @@ def get_neighbour_coordinates_that_match_edge(
     else:
         xx = y * (-1) + start_position.x
         yy = start_position.y
-
-    # if x:
-    #     xx = start_position.x
-    #     yy = x + start_position.y
-    # else:
-    #     xx = x + start_position.x
-    #     yy = start_position.y
     field_type = matrix[start_position.x][start_position.y]
     if _is_in_bounds(xx, yy, matrix) and matrix[xx][yy] == field_type:
         logger.info(
@@ -151,6 +148,15 @@ def get_neighbour_coordinates_that_match_edge(
         )
         return (xx, yy)
     return None
+
+
+# def _is_part_of_edge(
+#     edge_direction=(e_dx, e_dy),
+#     matrix=matrix,
+#     start_position=Coordinates(x=neighbor_x, y=neighbor_y),
+# )-> bool:
+#     # check if the cell has empty space of different value in the direction of the edge
+#     return i
 
 
 def extend_edge(
@@ -189,6 +195,14 @@ def extend_edge(
     if neighbor_coords is None:
         # no neighbor in the direction of the edge
         return edge
+
+    # now check if that neighbor is a part of the edge
+    # if _is_part_of_edge(
+    #     edge_direction=(e_dx, e_dy),
+    #     matrix=matrix,
+    #     start_position=Coordinates(x=neighbor_x, y=neighbor_y),
+    # )
+
     return extend_edge(
         edge=edge,
         start=(neighbor_x, neighbor_y),
@@ -198,7 +212,7 @@ def extend_edge(
     )
 
 
-def count_edges(field_coordinates: set[Coordinates], matrix: list[list[str]]) -> int:
+def get_edges(field_coordinates: set[Coordinates], matrix: list[list[str]]) -> int:
     result = []
     for c in field_coordinates:
         # for dx, dy in [ (1, 0), (0, 1), ]:  # subset of direction, we only need to check x and y axis
@@ -214,32 +228,32 @@ def count_edges(field_coordinates: set[Coordinates], matrix: list[list[str]]) ->
                     f"      NODE: ({c.x, c.y}) is an EDGE in direction ({dx, dy})"
                 )
                 edge.add((c.x, c.y))
-                # check if we have a neighbor to the right or down
-                # for ddx, ddy in [(0, 1), (1, 0)]:
-                neighbor_coords = get_neighbour_coordinates_that_match_edge(
-                    edge_direction=(dx, dy), matrix=matrix, start_position=c
-                )
-                if neighbor_coords is None:
-                    # no neighbor in the direction of the edge
-                    if edge:
-                        result.append(edge)
-                    continue
-
-                edge = extend_edge(
-                    edge=edge,
-                    start=(c.x, c.y),
-                    edge_direction=(dx, dy),
-                    neighbor_coords=neighbor_coords,
-                    matrix=matrix,
-                )
-
-            # while Coordinates(x=xx, y=yy) not in field_coordinates:
-            #     new_direction = turn_right_and_have_a_neighbour((xx, yy), matrix, c)
-            #     if new_direction is None:
-            #         break
-            #     new_run.add((c, Coordinates(x=xx, y=yy)))
-            #     xx, yy = new_direction
-    return 5
+                # now extend the edge until we can
+                while True:
+                    start_position = c
+                    neighbor_coords = get_neighbour_coordinates_that_match_edge(
+                        edge_direction=(dx, dy),
+                        matrix=matrix,
+                        start_position=start_position,
+                    )
+                    if neighbor_coords is None:
+                        # no neighbor in the direction of the edge
+                        break
+                    # check if neighbor is part of the edge
+                    n_x, n_y = neighbor_coords
+                    xx = n_x + dx
+                    yy = n_y + dy
+                    if (
+                        not _is_in_bounds(xx, yy, matrix)
+                        or matrix[xx][yy] != matrix[c.x][c.y]
+                    ):
+                        edge.add((n_x, n_y))
+                        start_position = Coordinates(x=n_x, y=n_y)
+                    else:
+                        break
+            if edge:
+                result.append([(dx, dy), edge])
+    return result
 
 
 def map_fields(matrix: list[list[str]]) -> list[Field]:
@@ -442,3 +456,15 @@ def test_get_neighbour_coordinates_that_match_edge():
         start_position=Coordinates(x=0, y=0),
     )
     assert expected == actual
+
+
+def test_get_edges():
+    expected = [
+        [(-1, 0), {(0, 0)}],
+        [(1, 0), {(0, 0)}],
+        [(0, -1), {(0, 0)}],
+        [(0, 1), {(0, 0)}],
+    ]
+    assert expected == get_edges(
+        field_coordinates={Coordinates(x=0, y=0)}, matrix=[["A"]]
+    )
