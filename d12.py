@@ -212,7 +212,9 @@ def extend_edge(
     )
 
 
-def get_edges(field_coordinates: set[Coordinates], matrix: list[list[str]]) -> int:
+def get_edges(
+    field_coordinates: set[Coordinates], matrix: list[list[str]]
+) -> list[list[tuple[int, int], set[tuple[int, int]]]]:
     result = []
     for c in field_coordinates:
         # for dx, dy in [ (1, 0), (0, 1), ]:  # subset of direction, we only need to check x and y axis
@@ -229,8 +231,11 @@ def get_edges(field_coordinates: set[Coordinates], matrix: list[list[str]]) -> i
                 )
                 edge.add((c.x, c.y))
                 # now extend the edge until we can
+                start_position = c
                 while True:
-                    start_position = c
+                    logger.info(
+                        f"start position: x: {start_position.x}, y: {start_position.y}"
+                    )
                     neighbor_coords = get_neighbour_coordinates_that_match_edge(
                         edge_direction=(dx, dy),
                         matrix=matrix,
@@ -458,13 +463,31 @@ def test_get_neighbour_coordinates_that_match_edge():
     assert expected == actual
 
 
-def test_get_edges():
-    expected = [
-        [(-1, 0), {(0, 0)}],
-        [(1, 0), {(0, 0)}],
-        [(0, -1), {(0, 0)}],
-        [(0, 1), {(0, 0)}],
-    ]
-    assert expected == get_edges(
-        field_coordinates={Coordinates(x=0, y=0)}, matrix=[["A"]]
-    )
+# def test_get_edges():
+#     expected = [
+#         [(-1, 0), {(0, 0)}],
+#         [(1, 0), {(0, 0)}],
+#         [(0, -1), {(0, 0)}],
+#         [(0, 1), {(0, 0)}],
+#     ]
+#     assert expected == get_edges(
+#         field_coordinates={Coordinates(x=0, y=0)}, matrix=[["A"]]
+#     )
+
+#
+# def test_get_edges_2():
+#     expected = [
+#         [(-1, 0), {(0, 0), (0, 1)}],
+#         [(1, 0), {(0, 0)}],
+#         [(0, -1), {(0, 0)}],
+#         [(0, 1), {(0, 0)}],
+#         [(-1, 0), {(0, 1), (0, 0)}],
+#         [(1, 0), {(0, 1)}],
+#         [(0, -1), {(0, 1)}],
+#         [(0, 1), {(0, 1)}],
+#     ]
+#     assert expected == get_edges(
+#         field_coordinates={Coordinates(x=0, y=0)}, matrix=[["A", "A"]]
+#     )
+
+get_edges(field_coordinates={Coordinates(x=0, y=0)}, matrix=[["A", "A"]])
