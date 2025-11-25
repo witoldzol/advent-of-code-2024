@@ -212,6 +212,11 @@ def extend_edge(
     )
 
 
+class Edge(BaseModel):
+    direction: tuple[int, int]
+    fields: set[tuple[int, int]]
+
+
 def get_edges(
     field_coordinates: set[Coordinates], matrix: list[list[str]]
 ) -> list[list[tuple[int, int], set[tuple[int, int]]]]:
@@ -463,18 +468,18 @@ def test_get_neighbour_coordinates_that_match_edge():
     assert expected == actual
 
 
-# def test_get_edges():
-#     expected = [
-#         [(-1, 0), {(0, 0)}],
-#         [(1, 0), {(0, 0)}],
-#         [(0, -1), {(0, 0)}],
-#         [(0, 1), {(0, 0)}],
-#     ]
-#     assert expected == get_edges(
-#         field_coordinates={Coordinates(x=0, y=0)}, matrix=[["A"]]
-#     )
+def test_get_edges():
+    expected = [
+        [(-1, 0), {(0, 0)}],
+        [(1, 0), {(0, 0)}],
+        [(0, -1), {(0, 0)}],
+        [(0, 1), {(0, 0)}],
+    ]
+    assert expected == get_edges(
+        field_coordinates={Coordinates(x=0, y=0)}, matrix=[["A"]]
+    )
 
-#
+
 # def test_get_edges_2():
 #     expected = [
 #         [(-1, 0), {(0, 0), (0, 1)}],
@@ -486,8 +491,14 @@ def test_get_neighbour_coordinates_that_match_edge():
 #         [(0, -1), {(0, 1)}],
 #         [(0, 1), {(0, 1)}],
 #     ]
-#     assert expected == get_edges(
-#         field_coordinates={Coordinates(x=0, y=0)}, matrix=[["A", "A"]]
-#     )
+#     expected = [
+#         [(-1, 0), {(0, 1), (0, 0)}],
+#         [(1, 0), {(0, 0)}],
+#         [(0, -1), {(0, 0)}]
+#     ]
+#     res = get_edges(field_coordinates={Coordinates(x=0, y=0)}, matrix=[["A", "A"]])
+#     print(res)
+#     assert expected == res
 
-get_edges(field_coordinates={Coordinates(x=0, y=0)}, matrix=[["A", "A"]])
+
+# get_edges(field_coordinates={Coordinates(x=0, y=0)}, matrix=[["A", "A"]])
