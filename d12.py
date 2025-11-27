@@ -2,6 +2,7 @@ from pydantic import BaseModel, ConfigDict
 import pytest
 import logging
 from collections import deque
+from typing import Tuple
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -217,9 +218,44 @@ class Edge(BaseModel):
     fields: set[tuple[int, int]]
 
 
+XYCoords = Tuple[int, int]
+
+
+def deduplicate_edges(
+    edges: list[tuple[XYCoords, set[XYCoords]]],
+) -> dict[tuple[XYCoords], list[set[XYCoords]]]:
+    deduplicated_direction_to_edges = {}
+    direction_to_edge: dict[XYCoords, list[set[XYCoords]]] = {}
+    for edge in edges:
+        direction = edge[0]
+        set_of_coords = edge[1]
+        if direction in direction_to_edge:
+            direction_to_edge[direction].append(set_of_coords)
+        else:
+            direction_to_edge[direction] = [set_of_coords]
+    # we need to sort by lenght first because, logically, a shorter set cannot be a superset of a longer one
+    for direction, list_of_sets_of_coords in direction_to_edge.items():
+        sorted_coords = sorted(
+            list_of_sets_of_coords, key=lambda x: len(x), reverse=True
+        )
+        for sc in sorted_coords:
+            if direction in deduplicated_direction_to_edges:
+                if any(
+                    sc.issubset(set_of_coords)
+                    for set_of_coords in deduplicated_direction_to_edges[direction]
+                ):
+                    continue
+                else:
+                    deduplicated_direction_to_edges[direction].append(sc)
+            else:
+                deduplicated_direction_to_edges[direction] = [sc]
+    return deduplicated_direction_to_edges
+
+
 def get_edges(
     field_coordinates: set[Coordinates], matrix: list[list[str]]
 ) -> list[list[tuple[int, int], set[tuple[int, int]]]]:
+    print(f"GETTING EDGES -> fields: {field_coordinates}")
     result = []
     for c in field_coordinates:
         # for dx, dy in [ (1, 0), (0, 1), ]:  # subset of direction, we only need to check x and y axis
@@ -480,25 +516,29 @@ def test_get_edges():
     )
 
 
-# def test_get_edges_2():
-#     expected = [
-#         [(-1, 0), {(0, 0), (0, 1)}],
-#         [(1, 0), {(0, 0)}],
-#         [(0, -1), {(0, 0)}],
-#         [(0, 1), {(0, 0)}],
-#         [(-1, 0), {(0, 1), (0, 0)}],
-#         [(1, 0), {(0, 1)}],
-#         [(0, -1), {(0, 1)}],
-#         [(0, 1), {(0, 1)}],
-#     ]
-#     expected = [
-#         [(-1, 0), {(0, 1), (0, 0)}],
-#         [(1, 0), {(0, 0)}],
-#         [(0, -1), {(0, 0)}]
-#     ]
-#     res = get_edges(field_coordinates={Coordinates(x=0, y=0)}, matrix=[["A", "A"]])
-#     print(res)
-#     assert expected == res
+def test_get_edges_2():
+    expected = [
+        [(-1, 0), {(0, 1), (0, 0)}],
+        [(-1, 0), {(0, 1)}],
+        [(1, 0), {(0, 1), (0, 0)}],
+        [(1, 0), {(0, 0)}],
+        [(0, -1), {(0, 0)}],
+        [(0, 1), {(0, 1)}],
+    ]
+    res = get_edges(
+        field_coordinates={Coordinates(x=0, y=0), Coordinates(x=0, y=1)},
+        matrix=[["A", "A"]],
+    )
+    print(res)
+    assert sorted(expected) == sorted(res)
 
 
-# get_edges(field_coordinates={Coordinates(x=0, y=0)}, matrix=[["A", "A"]])
+fields = map_fields(matrix=[["A", "A"]])
+for f in fields:
+    c = f.coordinates
+    e = get_edges(c, matrix=[["A", "A"]])
+    print(">" * 100)
+    print(e)
+    print("#" * 100)
+    print(deduplicate_edges(e))
+    print("#" * 100)
