@@ -4,11 +4,14 @@ import logging
 from collections import deque
 from typing import Tuple
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
 matrix = []
-with open("./testinput12") as f:
+# with open("./testinput12") as f:
+# with open("./testinput12-2") as f:
+# with open("./testinput12-3") as f:
+with open("./input12") as f:
     for line in f:
         fields = list(line.strip())
         matrix.append(fields)
@@ -529,16 +532,43 @@ def test_get_edges_2():
         field_coordinates={Coordinates(x=0, y=0), Coordinates(x=0, y=1)},
         matrix=[["A", "A"]],
     )
-    print(res)
+    # print(res)
     assert sorted(expected) == sorted(res)
 
 
-fields = map_fields(matrix=[["A", "A"]])
+# fields = map_fields(matrix=[["A", "A"]])
+# for f in fields:
+#     c = f.coordinates
+#     e = get_edges(c, matrix=[["A", "A"]])
+#     print(">" * 100)
+#     print(e)
+#     print("#" * 100)
+#     print(deduplicate_edges(e))
+#     print("#" * 100)
+
+# print(matrix)
+# input_name = "./input12"
+fields = map_fields(matrix)
+total = 0
 for f in fields:
     c = f.coordinates
-    e = get_edges(c, matrix=[["A", "A"]])
-    print(">" * 100)
-    print(e)
-    print("#" * 100)
-    print(deduplicate_edges(e))
-    print("#" * 100)
+    area = f.area
+    e = get_edges(c, matrix=matrix)
+    deduped_edges = deduplicate_edges(e)
+    edges = sum([len(v) for v in deduped_edges.values()])
+    total += edges * area
+
+
+print(">" * 100)
+print(total)
+print(">" * 100)
+
+# price = 0
+# for f in fields:
+#     price += f.area * f.perimiter
+# print(f"Total price: {price} for input {input_name}")
+# test run
+# print(turn_right_and_have_a_neighbour((0, 1), matrix, Coordinates(x=0, y=0)))
+# count_edges({Coordinates(x=0, y=0)}, matrix)
+# count_edges({Coordinates(x=0, y=0)}, [["A", "A"]])
+# count_edges({Coordinates(x=0, y=0), Coordinates(x=0, y=1)}, matrix)
