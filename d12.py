@@ -32,15 +32,6 @@ class Field(BaseModel):
 DIRECTIONS = ((-1, 0), (1, 0), (0, -1), (0, 1))
 
 
-def parse_input_to_matrix(file_name: str) -> list[list[str]]:
-    matrix = []
-    with open(file_name) as f:
-        for l in f:
-            line = list(l.strip())
-            matrix.append(line)
-    return matrix
-
-
 def _is_empty(matrix: list[list[str]]) -> bool:
     if matrix is None or not matrix:
         return True
@@ -135,10 +126,6 @@ def get_neighbour_coordinates_that_match_edge(
     # _ A A
     # _ _ _
     # right is 0, -1
-
-    logger.info("get neighbor coords, edge_direction coords are ->")
-    logger.info(edge_direction)
-    logger.info("*" * 100)
     if x:
         xx = start_position.x
         yy = x * (-1) + start_position.y
@@ -147,78 +134,11 @@ def get_neighbour_coordinates_that_match_edge(
         yy = start_position.y
     field_type = matrix[start_position.x][start_position.y]
     if _is_in_bounds(xx, yy, matrix) and matrix[xx][yy] == field_type:
-        logger.info(
+        logger.debug(
             f"NEIGHBOUR DETECTED for node ({start_position.x},{start_position.y}) -> ({xx},{yy})"
         )
         return (xx, yy)
     return None
-
-
-# def _is_part_of_edge(
-#     edge_direction=(e_dx, e_dy),
-#     matrix=matrix,
-#     start_position=Coordinates(x=neighbor_x, y=neighbor_y),
-# )-> bool:
-#     # check if the cell has empty space of different value in the direction of the edge
-#     return i
-
-
-def extend_edge(
-    edge, start, edge_direction, neighbor_coords, matrix
-) -> set[tuple[int, int]]:
-    logger.info(">" * 100)
-    logger.info("EXTEND EDGE START")
-    logger.info(">" * 100)
-    start_x, start_y = start
-    e_dx, e_dy = edge_direction
-    neighbor_x, neighbor_y = neighbor_coords
-    logger.info(
-        f"examining NEIGHBOUR ({neighbor_x},{neighbor_y}) of start position ({start_x, start_y})in the same direction of edge ({e_dx},{e_dy})"
-    )
-    # we know we have a neighbor to the 'right' relative to the directio of the edge
-    # now we have to verify if this neighbor is also an edge
-    xx = neighbor_x + e_dx
-    yy = neighbor_y + e_dy
-    if (
-        _is_in_bounds(xx, yy, matrix)
-        and matrix[xx][yy] == matrix[neighbor_x][neighbor_y]
-    ):
-        # not an edge, so we can return early
-        return edge
-    logger.info(
-        f"      NODE: ({neighbor_x},{neighbor_y}) is an EDGE in direction ({e_dx},{e_dy})"
-    )
-    edge.add((neighbor_x, neighbor_y))
-    print(f"found an edge {edge}")
-    # repeat neighbor discovery
-    neighbor_coords = get_neighbour_coordinates_that_match_edge(
-        edge_direction=(e_dx, e_dy),
-        matrix=matrix,
-        start_position=Coordinates(x=neighbor_x, y=neighbor_y),
-    )
-    if neighbor_coords is None:
-        # no neighbor in the direction of the edge
-        return edge
-
-    # now check if that neighbor is a part of the edge
-    # if _is_part_of_edge(
-    #     edge_direction=(e_dx, e_dy),
-    #     matrix=matrix,
-    #     start_position=Coordinates(x=neighbor_x, y=neighbor_y),
-    # )
-
-    return extend_edge(
-        edge=edge,
-        start=(neighbor_x, neighbor_y),
-        edge_direction=(e_dx, e_dy),
-        neighbor_coords=neighbor_coords,
-        matrix=matrix,
-    )
-
-
-class Edge(BaseModel):
-    direction: tuple[int, int]
-    fields: set[tuple[int, int]]
 
 
 XYCoords = Tuple[int, int]
@@ -258,26 +178,26 @@ def deduplicate_edges(
 def get_edges(
     field_coordinates: set[Coordinates], matrix: list[list[str]]
 ) -> list[list[tuple[int, int], set[tuple[int, int]]]]:
-    print(f"GETTING EDGES -> fields: {field_coordinates}")
+    logger.debug(f"GETTING EDGES -> fields: {field_coordinates}")
     result = []
     for c in field_coordinates:
         # for dx, dy in [ (1, 0), (0, 1), ]:  # subset of direction, we only need to check x and y axis
-        logger.info(f"START new node: ({c.x, c.y})")
+        logger.debug(f"START new node: ({c.x, c.y})")
         for dx, dy in DIRECTIONS:
             edge = set()  # field can be an edge in any direction
-            logger.info(f"  DIRECTION : ({dx, dy})")
+            logger.debug(f"  DIRECTION : ({dx, dy})")
             xx = dx + c.x
             yy = dy + c.y
             # if this cell is an edge
             if not _is_in_bounds(xx, yy, matrix) or matrix[xx][yy] != matrix[c.x][c.y]:
-                logger.info(
+                logger.debug(
                     f"      NODE: ({c.x, c.y}) is an EDGE in direction ({dx, dy})"
                 )
                 edge.add((c.x, c.y))
                 # now extend the edge until we can
                 start_position = c
                 while True:
-                    logger.info(
+                    logger.debug(
                         f"start position: x: {start_position.x}, y: {start_position.y}"
                     )
                     neighbor_coords = get_neighbour_coordinates_that_match_edge(
@@ -465,33 +385,6 @@ def test_calculate_perimiter(field, expected):
     assert expected == calculate_perimiter(field)
 
 
-# input_name = "./testinput12"
-# fields = map_fields(parse_input_to_matrix(input_name))
-# price = 0
-# for f in fields:
-#     price += f.area * f.perimiter
-# print(f"Total price: {price} for input {input_name}")
-#
-# input_name = "./testinput12b"
-# fields = map_fields(parse_input_to_matrix(input_name))
-# price = 0
-# for f in fields:
-#     price += f.area * f.perimiter
-# print(f"Total price: {price} for input {input_name}")
-#
-# input_name = "./input12"
-# fields = map_fields(parse_input_to_matrix(input_name))
-# price = 0
-# for f in fields:
-#     price += f.area * f.perimiter
-# print(f"Total price: {price} for input {input_name}")
-# test run
-# print(turn_right_and_have_a_neighbour((0, 1), matrix, Coordinates(x=0, y=0)))
-# count_edges({Coordinates(x=0, y=0)}, matrix)
-# count_edges({Coordinates(x=0, y=0)}, [["A", "A"]])
-# count_edges({Coordinates(x=0, y=0), Coordinates(x=0, y=1)}, matrix)
-
-
 def test_get_neighbour_coordinates_that_match_edge():
     expected = None
     actual = get_neighbour_coordinates_that_match_edge(
@@ -535,16 +428,6 @@ def test_get_edges_2():
     # print(res)
     assert sorted(expected) == sorted(res)
 
-
-# fields = map_fields(matrix=[["A", "A"]])
-# for f in fields:
-#     c = f.coordinates
-#     e = get_edges(c, matrix=[["A", "A"]])
-#     print(">" * 100)
-#     print(e)
-#     print("#" * 100)
-#     print(deduplicate_edges(e))
-#     print("#" * 100)
 
 # print(matrix)
 # input_name = "./input12"
